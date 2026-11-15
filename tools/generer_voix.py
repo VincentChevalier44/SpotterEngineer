@@ -1,5 +1,5 @@
 """Génère les clips de voix de SpotterEnginer avec la même voix que les clips d'origine (script generer_voix.py des
-voix FIA) : edge-tts, voix fr-FR-HenriNeural et en-US-GuyNeural. La liste, les textes exacts, les langues, les
+voix FIA) : edge-tts, voix fr-FR-HenriNeural et en-US-GuyNeural pour l'ingénieur (voix féminine du spotter : plus bas). La liste, les textes exacts, les langues, les
 sous-dossiers et leurs bornes viennent de src/catalog.lua (clips 01 à 34 d'origine, clips 35 et plus, nombres dans
 vox/<LANGUE>/num/, durées dans vox/<LANGUE>/sec/, positions « Tu es P7 » dans vox/<LANGUE>/pos/) ; les durées sont
 écrites par la même fonction que la radio (Say.secondsText).
@@ -18,7 +18,7 @@ Le jeu doit être fermé : les clips sont écrits dans le dossier de l'app (vox/
 fichier changé. Chaque clip est écrit à côté (.tmp) puis mis en place d'un seul coup : une interruption ne laisse jamais
 un clip tronqué, qui passerait ensuite pour présent.
 Nécessite une connexion (service de synthèse de Microsoft Edge), Python avec edge-tts et lupa.
-Voix du spotter (1.3.9, choix du pilote) : voix féminine de Catalog.femaleVoices (Denise, Jenny) pour les clips
+Voix du spotter (Beta 2.0.0, choix du pilote) : voix féminine de Catalog.femaleVoices (Denise, Jenny) pour les clips
 du spotter seul (Catalog.spotterOnly, à leur place) et pour la copie féminine des clips communs, nombres, durées et
 positions (vox/<LANGUE>/F/…) ; l'ingénieur garde la voix masculine.
 Usage :  python tools/generer_voix.py            (seulement les clips absents, et le signal s'il manque)
@@ -232,7 +232,7 @@ async def one(lang, name, text, redo, rate, pitch, voice_name, femaleNow, force,
 
 async def main(force, everything, feminin=False):
     jobs, tone = catalog(everything)
-    # --feminin : les clips du spotter seul déjà présents (voix masculine d'avant 1.3.9) sont refaits.
+    # --feminin : les clips du spotter seul déjà présents (voix masculine d'avant Beta 2.0.0) sont refaits.
     jobs = [(l, n, t, r, ra, p, v, own and feminin) for l, n, t, r, ra, p, v, own in jobs]
     radio_tone(tone, force)
     report = {'done': 0, 'skipped': 0, 'failed': []}

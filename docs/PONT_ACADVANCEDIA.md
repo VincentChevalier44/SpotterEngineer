@@ -11,9 +11,11 @@ The code blocks below are reproduced exactly as integrated, with their original 
 
 **Rename (5 November 2026)**: from Beta 1.49 on, the app is called **AdvancedIA** and installs into `apps/lua/AdvancedIA/` (script `AdvancedIA.lua`, manifest `NAME=AdvancedIA`, log `AdvancedIA.log`). The bridge itself does not change: `src/bridge_layout.lua` stays identical byte for byte and the `ac.connect` keys keep the old prefix (`ACAdvancedIA.Bridge.Hello`, `ACAdvancedIA.Bridge.Data.v1`), on purpose, because the protocol is frozen. SpotterEnginer (`src/port.lua`, `M.detect`) looks for `apps/lua/AdvancedIA/manifest.ini`, then the old `apps/lua/ACAdvancedIA/manifest.ini`; the main script is read under the folder's name. The `ACAdvancedIA` paths below date from the integration (1.46): read `AdvancedIA` for 1.49 and later.
 
-Known limit of format v1: `penaltyKind` is `string(4)`, so "slow" arrives as "slo". The reader treats any value other than "dq" as a throttle cut. A possible v2 would need `string(8)`.
+Known limit of formats v1 and v2: `penaltyKind` is `string(4)`, so "slow" arrives as "slo". The reader treats any value other than "dq" as a throttle cut (v2 kept `string(4)`).
 
-## Files added (already present in `apps/lua/ACAdvancedIA/src`)
+**Version 2 (AdvancedIA Beta 2.0.0, SpotterEnginer Beta 2.0.0)**: key `ACAdvancedIA.Bridge.Data.v2`, `L.version=2`. New fields: per car `retired` and `lastReason` (codes in `L.reasons`, 99 = other); global `trackWarnings` and `serveLaps` (the session's sanction rules).
+
+## Files added (already present in `apps/lua/AdvancedIA/src`, `ACAdvancedIA/src` before 1.49)
 
 - `src/bridge_layout.lua`: pure description of the format. **Identical character for character** to
   `apps/lua/SpotterEnginer/src/bridge_layout.lua` (checked by SpotterEnginer's `python tests/run.py`).
@@ -113,7 +115,7 @@ end
 
 - `hello` (key `ACAdvancedIA.Bridge.Hello`, shape frozen forever): bridge version, ACAdvancedIA version,
   heartbeat (frame counter), closing.
-- `data` (key `ACAdvancedIA.Bridge.Data.v1`): state published every frame; AC car indices (0 = first car,
+- `data` (key `ACAdvancedIA.Bridge.Data.v2`; `.v1` before Beta 2.0.0): state published every frame; AC car indices (0 = first car,
   -1 = none); durations in seconds remaining or elapsed; a one-frame event is a counter that changes.
 - A new version of the format changes the `data` key and `version`: SpotterEnginer then shows **Different bridge
   version** instead of reading wrong data.

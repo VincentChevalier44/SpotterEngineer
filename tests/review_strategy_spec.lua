@@ -492,4 +492,47 @@ function T.stop_counted_under_neutralisation_before_window()
  owed=St.rules(d,3,20,100,F,0)
  check(owed==1,'no flag given: owed as before, got '..owed)
 end
+-- Relecture du 15/11/2026 : un rival dans la voie pour une pénalité (drive-through) ou une coupe d'une image de
+-- l'entrée des stands n'est pas un arrêt ; plus de plan publié après l'arrivée.
+function T.rival_penalty_or_cut_is_not_a_stop()
+ local w=world({laps=30,fuel=30,rivals={{spline=0.51}},cfg={rivalPitVoice=true,strategyOn=true}})
+ w.step(260)
+ w.F.cars[1].pitlane=true; w.step(0); w.ctx.now=w.ctx.now
+ St.step(w.t,w.ctx); w.F.cars[1].pitlane=false; w.step(3)
+ check(said(w.voice,'rivalPitted')==0,'one-frame cut of the pit entry: silent')
+ w.ctx.link.cars={[1]={valid=true,pending=1}}
+ w.F.cars[1].pitlane=true; w.step(3)
+ check(said(w.voice,'rivalPitted')==0,'drive-through: silent')
+ w.ctx.link.cars={[1]={valid=true,pending=0}}; w.step(3)
+ check(said(w.voice,'rivalPitted')==0,'drive-through served, still in the lane: silent')
+ w.F.cars[1].pitlane=false; w.step(2); w.ctx.link.cars={[1]={valid=true,pending=0}}
+ w.F.cars[1].pitlane=true; w.step(3)
+ check(said(w.voice,'rivalPitted')==1,'real stop: said')
+end
+function T.pitplan_none_after_the_finish()
+ local t=St.new()
+ local me={valid=true,laps=11,spline=0.5,pitlane=false,finished=false}
+ local F={isRace=true,player=0,cars={[0]=me},clock=900}
+ local ctx={F=F,cfg={boxCalls=true}}
+ t.ready=true; t.plan={ok=true,optimal=14,window={10,16}}
+ check(St.pitplan(t,ctx,true):find('state=planned',1,true),'planned during the race')
+ me.finished=true
+ check(St.pitplan(t,ctx,true):find('state=none',1,true),'finished: none')
+end
+-- Relecture du 15/11/2026 : course au temps, la course finit au passage du leader après l'échéance. Joueur 2 s
+-- derrière lui, encore dans son tour à l'échéance (le leader vient de passer la ligne) : un tour de plus.
+function T.timed_race_total_follows_the_leader()
+ local t=St.new(); t.pace=100
+ local leader={valid=true,position=1,laps=21,spline=0.0}
+ local me={valid=true,position=2,laps=20,spline=0.98}
+ local F={timed=true,timeLeft=0,additional=false,laps=0,count=2,player=1,cars={[0]=leader,[1]=me}}
+ t.overLap=20; t.overLeader=21
+ check(St.total(t,F,me)==22,'expired, leader just crossed: 22 laps for the player, not 21: '..tostring(St.total(t,F,me)))
+ -- Avant l'échéance : 150 s restantes, leader en début de tour, joueur 0,5 tour derrière.
+ F.timeLeft=150; leader.laps=10; leader.spline=0.1; me.laps=9; me.spline=0.6; t.overLap=nil; t.overLeader=nil
+ check(St.total(t,F,me)==12,'before expiry: from the leader: '..tostring(St.total(t,F,me)))
+ -- Joueur en tête : son propre compte (comme avant).
+ me.position=1; leader.position=2
+ check(St.total(t,F,me)==9+math.max(1,math.floor(150/100+0.6)+1),'leading: own count')
+end
 return T

@@ -84,7 +84,8 @@ local run=Config.effective(cfg)
 local desktops=Config.loadDesktops(stored.desktops,stored.schema)
 local hadDesktops=type(stored.desktops)=='table'
 local activeDesktop=nil
--- Fenêtre de réglages en jeu (1.3.9, comme la configuration de SuperHUD) : ouverte ou fermée, place et taille propres
+local desktopRead=false
+-- Fenêtre de réglages en jeu (Beta 2.0.0, comme la configuration de SuperHUD) : ouverte ou fermée, place et taille propres
 -- à chaque bureau (une table par bureau, src/config.lua M.loadWindows).
 local gameWins=Config.loadWindows(stored.gameWindows)
 -- Réglages propres au bureau : jamais écrits quand le bureau est illisible (ils iraient dans un autre bureau).
@@ -114,6 +115,9 @@ local session=nil
 local carPlayer,carCompound=nil,nil
 local lastLaps,lastPlayer,playerSince=nil,nil,nil
 local dirtyAt=nil
+-- Changement fait par le pilote depuis le lancement ; échec d'écriture déjà journalisé.
+local userChanged=false
+local saveFailed=false
 local errors={count=0,last='',seen={}}
 -- Journal de session (src/port.lua) : lancement, réglages, liaison, séances, tours, radio (dite, écrite, coupée,
 -- périmée), annonces d'AdvancedIA, erreurs, et un point d'état toutes les 10 s en course.
@@ -183,6 +187,7 @@ jlog(string.format('=== SpotterEnginer %s : %s ===',app.version,journalContinued
 jlog(string.format('réglages : langue %s, app %s, volume %d %%, voiture pendant la radio %s, spotter %s, ingénieur %s, stratégie %s, direction de course %s, côte à côte %s',
  tostring(cfg.language),cfg.enabled and 'active' or 'coupée',math.floor((cfg.volume or 0)*100+0.5),cfg.duck and math.floor((cfg.duckLevel or 1)*100+0.5)..' %' or 'non baissée',
  cfg.spotterOn and 'oui' or 'non',cfg.engineerOn and 'oui' or 'non',cfg.strategyOn and 'oui' or 'non',cfg.raceControl and 'oui' or 'non',cfg.sideBySide and 'oui' or 'non'))
+if Port.settingsFailed then jlog('ERREUR : réglages enregistrés illisibles : valeurs par défaut, aucune écriture avant un changement') end
 jlog(string.format('voix : %d clips ; AdvancedIA %s ; pont %s',present or 0,installed and (release~='' and release or 'installé') or 'absent',
  hello and 'ouvert' or 'indisponible ('..tostring(bridgeWhy)..')'))
 app.screen=Port.screen
@@ -212,7 +217,7 @@ end
 -- Annonces entendues gardées au rechargement à chaud de l'app (src/voice.lua, heardText) : l'ingénieur ne redit pas
 -- ce qu'il vient de dire (« usure anormale » redite cinq fois le 05/11/2026). Portée de la séance (Port.keep).
 voice.onHeard=function(item)
- if item.role=='engineer' then Port.keep.store('heard',Voice.heardText(voice,app.radioNow)) end
+ if item.role=='engineer' and not item.cam then Port.keep.store('heard',Voice.heardText(voice,app.radioNow)) end
 end
 if updatePort.ready then Update.start(updater,updatePort,recovered) end
 updateLog()
@@ -258,12 +263,14 @@ function app.lockAll(locked) for _,o in ipairs(Config.overlays) do app.set(o..'L
 -- Édition en jeu (src/editor.lua) : ouverte ou fermée (fermée : tout verrouillé) ; état de la session, jamais enregistré.
 function app.toggleEditor() Editor.toggle(app) end
 function app.backgrounds(mode)
- for _,o in ipairs(Config.overlays) do app.set(o..'Background',mode); if mode=='transparent' then app.set(o..'Accent',false) else app.set(o..'Accent',true) end end
+ for _,o in ipairs(Config.overlays) do app.set(o..'Background',mode); if mode=='transparent' then app.set(o..'Accent',false) end end
 end
 -- Radio coupée (bouton ou Ctrl+Alt+M), pour la session seulement.
 function app.toggleMute() voice.muted=not voice.muted; app.radioMuted=voice.muted; if voice.muted then Voice.stop(voice) end end
 -- Tous les réglages à leur valeur par défaut, la langue gardée.
-function app.resetAll() local lang=cfg.language; for _,s in ipairs(Config.schema) do cfg[s[1]]=s[2] end; cfg.language=lang; apply(); if app.remember then app.remember() end; dirtyAt=Port.clock() end
+-- Bureau illisible : les réglages d'overlays (propres au bureau) ne sont pas touchés, comme app.set (relecture du
+-- 15/11/2026).
+function app.resetAll() local lang=cfg.language; for _,s in ipairs(Config.schema) do if not (DESK_KEY[s[1]] and app.desktopAvailable==false) then cfg[s[1]]=s[2] end end; cfg.language=lang; apply(); if app.remember then app.remember() end; dirtyAt=Port.clock(); userChanged=true end
 function app.allLocked() for _,o in ipairs(Config.overlays) do if not cfg[o..'Locked'] then return false end end return true end
 -- Bureau quitté : ses réglages d'overlays gardés ; bureau rejoint : les siens, ou un bureau vide. Au tout premier
 -- passage (réglages d'avant les bureaux), le bureau courant garde la configuration existante, comme SuperHUD.
@@ -277,7 +284,9 @@ local function syncDesktop(fromGame)
  local d=Port.desktop()
  app.desktopAvailable=d~=nil
  -- Bureau illisible (comme SuperHUD) : overlays et réglages d'overlays suspendus, pour ne jamais modifier un autre
- -- bureau ; le bureau actif est gardé pour le retour.
+ -- bureau ; le bureau actif est gardé pour le retour. Jamais lu depuis le lancement (CSP sans bureaux) : un seul
+ -- bureau, le 1 (comme avant la 2.0.0 ; relecture du 15/11/2026 : sinon aucun overlay chez ces joueurs).
+ if d then desktopRead=true elseif not desktopRead then d=1; app.desktopAvailable=true end
  if not d then return false end
  if d==activeDesktop then return true end
  local first=activeDesktop==nil
@@ -335,7 +344,7 @@ function app.set(key,value)
  local v=Config.valid(key,value)
  -- Valeur inchangée (glisser d'un overlay, curseur immobile) : rien à appliquer ni à enregistrer.
  if v==nil or cfg[key]==v then return end
- cfg[key]=v; apply(); dirtyAt=Port.clock()
+ cfg[key]=v; apply(); dirtyAt=Port.clock(); userChanged=true
 end
 -- Essai de la voix : un clip livré de chaque rôle.
 function app.test(role)
@@ -392,7 +401,7 @@ end
 -- à zéro en cours suit un rechargement à chaud dans la même séance (ce qui a été gardé peut être relu).
 -- Clés annexes d'AdvancedIA (1.3.5, src/side.lua : nuance des classes, météo en direct), relues deux fois par seconde.
 local side=Side.new()
--- SetupLab (1.3.9, app facultative : src/setuplab.lua), clé relue deux fois par seconde quand SetupLab est installé.
+-- SetupLab (Beta 2.0.0, app facultative : src/setuplab.lua), clé relue deux fois par seconde quand SetupLab est installé.
 local setuplab=SetupLab.new()
 local shLogged={}
 local slLogged=nil
@@ -410,7 +419,8 @@ local RESTART_BACK,RESTART_HOLD,LAPS_HOLD=2,2,5
 local lastStarted,lastTime,resetAt=nil,nil,-1e9
 -- Tout sauf l'essai de la voix (liaison suspendue ou perdue).
 local function notTest(q) return tostring(q.key):sub(1,5)~='test:' end
-local function lapText(ms) return require('src/util').lapTime((tonumber(ms) or 0)/1000) end
+local lapTime=require('src/util').lapTime
+local function lapText(ms) return lapTime((tonumber(ms) or 0)/1000) end
 local function heartbeat(real)
  if real-stateAt<10 then return end
  stateAt=real
@@ -441,7 +451,7 @@ local function step(dt)
  local linkDown=link.state~='connected' and link.state~='suspended'
  if linkDown then linkLostAt=linkLostAt or real else linkLostAt=nil end
  local linkGone=linkDown and real-linkLostAt>LINK_GRACE
- if linkGone or not cfg.enabled then spotter.prev=nil end
+ if linkGone or not cfg.enabled then spotter.prev=nil; if app.spectator.s then app.spectator.s.prev=nil end end
  app.now=F.clock; app.real=real
  local radio=app.radioNow
  -- Nouvelle session, redémarrage de la session (tours du joueur revenus en arrière, départ redevenu non donné ou temps
@@ -482,9 +492,13 @@ local function step(dt)
  if F.player~=carPlayer or F.me.compound~=carCompound then
   local ok,data=pcall(Port.carData,math.max(0,F.player),F.me.compound)
   if ok and data then engineer.strategist.car=data; carPlayer=F.player; carCompound=F.me.compound
-  elseif not ok then errors.count=errors.count+1; errors.last=tostring(data):sub(1,120); carPlayer=F.player; carCompound=F.me.compound end
+  elseif not ok then
+   errors.count=errors.count+1; errors.last=tostring(data):sub(1,120); carPlayer=F.player; carCompound=F.me.compound
+   -- Écrit une fois au journal (relecture du 15/11/2026 : la stratégie restait « linéaire » sans trace).
+   jlog('ERREUR : données de la voiture illisibles ('..errors.last..')')
+  end
  end
- -- SuperHUD (1.3.9, facultatif : src/superhud.lua) : clé relue deux fois par seconde quand il est installé.
+ -- SuperHUD (Beta 2.0.0, facultatif : src/superhud.lua) : clé relue deux fois par seconde quand il est installé.
  local shRadar=false
  if app.has.superhud then
   SuperHUD.step(app.superhud,Port.recall,real)
@@ -592,11 +606,16 @@ end
 -- Réglages enregistrés (une seconde après le dernier changement, et avant un redémarrage de mise à jour). Bureaux
 -- enregistrés sous des clés texte (« 1 » à « 4 ») : JSON valide même si certains bureaux n'ont jamais été réglés.
 function saveNow()
- dirtyAt=nil; rememberDesktop()
+ dirtyAt=nil
+ -- Réglages illisibles au lancement : rien d'écrit tant que le pilote n'a rien changé (Port.settingsFailed).
+ if Port.settingsFailed and not userChanged then return end
+ rememberDesktop()
  local out={}; for k,v in pairs(cfg) do out[k]=v end
  out.desktops={}; for d,t in pairs(desktops) do out.desktops[tostring(d)]=t end
  out.gameWindows={}; for d,t in pairs(gameWins) do out.gameWindows[tostring(d)]=t end
- Port.saveSettings(out)
+ local ok,err=Port.saveSettings(out)
+ if not ok and not saveFailed then saveFailed=true; jlog('ERREUR : réglages non enregistrés ('..tostring(err)..')') end
+ if ok then saveFailed=false end
 end
 function script.update(dt)
  radioClock()

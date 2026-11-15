@@ -1,4 +1,4 @@
--- SetupLab (1.3.9, app facultative) : lecture de la clé SetupLab.state (exemples du contrat, vérifiés par le test CP08
+-- SetupLab (Beta 2.0.0, app facultative) : lecture de la clé SetupLab.state (exemples du contrat, vérifiés par le test CP08
 -- de SetupLab), acceptation par séance, verdicts des tours d'essai dits par l'ingénieur, section cachée sans SetupLab.
 local SetupLab=require('src/setuplab')
 local Engineer=require('src/engineer')

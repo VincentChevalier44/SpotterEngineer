@@ -361,7 +361,7 @@ function T.desktops_survive_a_restart()
  check(app.desktop==2 and app.desktopAvailable==false and app.cfg.strategyX==222,'unreadable desktop keeps the active one')
  H.desktop=0
 end
--- Fenêtre de réglages en jeu (1.3.9, comme SuperHUD) : fenêtre CSP factice (ac.getAppWindows / ac.accessAppWindow).
+-- Fenêtre de réglages en jeu (Beta 2.0.0, comme SuperHUD) : fenêtre CSP factice (ac.getAppWindows / ac.accessAppWindow).
 local function fakeWindows()
  local w={open=true,pos=vec2(100,80),sz=vec2(860,640)}
  local o={}
@@ -429,7 +429,7 @@ function T.game_window_close_cross()
  check(g and g['1'] and g['1'].open==false,'closed on this desktop, saved')
  noWindows()
 end
--- Caméra sur une autre voiture (1.3.9) : la radio reste celle du joueur, annonce pour annonce.
+-- Caméra sur une autre voiture (Beta 2.0.0) : la radio reste celle du joueur, annonce pour annonce.
 function T.radio_unchanged_when_watching_another_car()
  local function spoken()
   math.randomseed(7); race(true,260,false)
@@ -447,7 +447,7 @@ function T.radio_unchanged_when_watching_another_car()
  for k=1,math.max(#own,#other) do if own[k]~=other[k] then same=false; check(false,'call '..k..' differs: '..tostring(own[k])..' / '..tostring(other[k])); break end end
  check(same,'same radio, call for call')
 end
--- Overlays Ingénieur et Stratégie de la voiture suivie par la caméra (1.3.9, comme SuperHUD) : nom et étiquette
+-- Overlays Ingénieur et Stratégie de la voiture suivie par la caméra (Beta 2.0.0, comme SuperHUD) : nom et étiquette
 -- CAMÉRA, données partielles sans physique, plan publié par AdvancedIA pour elle ; réglage propre au bureau.
 function T.overlays_follow_the_camera_car()
  race(true,30,false)
@@ -493,7 +493,7 @@ function T.home_locks_all_overlays()
  H.clickId='##spe_home_lockall'; script.SPE__MAIN(); H.clickId=nil
  check(app.allLocked(),'all locked again')
 end
--- Radio de la voiture regardée (1.3.9, src/spectator.lua) : jamais quand le joueur pilote, même réglage allumé.
+-- Radio de la voiture regardée (Beta 2.0.0, src/spectator.lua) : jamais quand le joueur pilote, même réglage allumé.
 local function withSpectator(fn)
  local entry=require('src/config').index.spectatorRadio
  local old=entry[2]; entry[2]=true
@@ -545,7 +545,106 @@ function T.spectator_radio_when_not_driving()
   check(sc,'safety car said on its radio (a flag for everyone)')
   check(#own==0,'nothing about the player: '..table.concat(own,','))
   check(#untagged==0,'no player radio while watching: '..table.concat(untagged,' / '))
+  H.texts={}; H.windowIds={}; script.SPE__HUD()
+  check(not texted('^SPOTTER$') and texted('^PILOTE 2$'),'spotter overlay shows the watched car, not the player')
+  local app=SPE_TEST.app; app.spotter.prox.left=true; app.spectator.s.prox.left=false; app.spectator.s.prox.right=false
+  H.texts={}; H.windowIds={}; script.SPE__HUD()
+  check(texted(require('src/lang').t.ov.clear),'sides of the watched car, not the player frozen ones')
  end)
+end
+-- Retour à la radio du joueur : sa mémoire (délais, annonces entendues) remise telle qu'avant la voiture regardée.
+function T.spectator_leaves_player_memory_untouched()
+ withSpectator(function()
+  H.sim.focusedCar=1
+  H.onStep=function(now)
+   if now>=5 then H.cars[0].isRetired=true end
+   local v=SPE_TEST.app and SPE_TEST.app.voice
+   if v and now>=6 and now<6.05 then v.last.probe=6; v.heard.probe=6 end
+   if now>=180 then H.sim.focusedCar=0 end
+  end
+  race(true,190,false)
+  H.onStep=nil; H.sim.focusedCar=nil
+  local v=SPE_TEST.app.voice
+  check(v.last.probe==6 and v.heard.probe==6,'player memory kept')
+  check(v.last.neutral==nil,'the watched car safety car call left no cooldown on the player radio')
+ end)
+end
+-- Le pont de la voiture regardée garde le départ et le redémarrage d'AdvancedIA.
+function T.spectator_global_fields()
+ local S=require('src/spectator'); local has={}
+ for _,k in ipairs(S.GLOBAL) do has[k]=true end
+ check(has.standing and has.serial,'standing and serial copied for the watched car')
+end
+-- Défauts de pneus de l'overlay Ingénieur aux seuils de la radio (comme SuperHUD) : cloques au-delà de 0,35.
+function T.overlay_tyre_defects_use_radio_thresholds()
+ race(true,10,false)
+ local function hud() H.clock=H.clock+1/30; script.update(1/30); H.texts={}; H.windowIds={}; script.SPE__HUD() end
+ H.cars[0].wheels[0].tyreBlister=0.32; hud()
+ check(not texted('CLOQUES'),'blisters 0.32: not shown (radio threshold 0.35)')
+ H.cars[0].wheels[0].tyreBlister=0.4; hud()
+ check(texted('CLOQUES'),'blisters 0.4: shown')
+ H.cars[0].wheels[0].tyreBlister=0; H.cars[0].wheels[0].tyreGrain=0.4; hud()
+ check(not texted('GRAINAGE'),'graining on tyres not yet warm for 60 s: not shown')
+end
+-- Accueil sans les volumes ni le son de la voiture pendant la radio (demande du pilote, 15/11/2026) : onglet Radio seul.
+function T.home_without_volumes()
+ race(true,10,false)
+ local app=SPE_TEST.app
+ H.space=vec2(860,640); script.SPE__MAIN(); app.view.tab='home'
+ H.texts={}; script.SPE__MAIN()
+ check(not texted('Volume général') and not texted('voiture pendant la radio'),'home: no volumes, no car sound setting')
+ app.view.tab='radio'; H.texts={}; script.SPE__MAIN()
+ check(texted('Volume général'),'radio tab: volumes still there')
+end
+-- Changement de caméra entre deux IA sous voiture de sécurité : jamais la radio du joueur entre les deux, un seul
+-- « voiture de sécurité » par voiture.
+function T.spectator_switch_under_safety_car()
+ local entry=require('src/config').index.spectatorRadio
+ local old=entry[2]; entry[2]=true
+ H.sim.focusedCar=1
+ H.onStep=function(now) if now>=5 then H.cars[0].isRetired=true end; if now>=130 then H.sim.focusedCar=2 end end
+ race(true,160,false)
+ H.onStep=nil; H.sim.focusedCar=nil; entry[2]=old
+ local untagged,neutral3={},0
+ for _,e in ipairs(SPE_TEST.app.voice.log) do
+  if e.spoken and e.at and e.at>=8 then
+   local text=tostring(e.text)
+   if not text:find('· CAMÉRA ·') and tostring(e.key):sub(1,5)~='test:' then untagged[#untagged+1]=e.key..'|'..text end
+   if text:find('^Pilote 3 · CAMÉRA · ') and e.key=='neutral' then neutral3=neutral3+1 end
+  end
+ end
+ check(#untagged==0,'never the player radio between two watched cars: '..table.concat(untagged,' / '))
+ check(neutral3<=1,'safety car said at most once for the new car: '..neutral3)
+end
+-- Relecture du 15/11/2026 : réglages illisibles jamais écrasés avant un vrai changement du pilote.
+function T.unreadable_settings_not_overwritten()
+ H.storage={['spe:']={settings='{ce texte est abîmé'}}; H.keepStorage=true
+ race(true,5,false)
+ H.keepStorage=nil
+ for _=1,60 do H.clock=H.clock+1/30; script.update(1/30) end
+ check(H.storage['spe:'].settings=='{ce texte est abîmé','unreadable settings kept as they were')
+ SPE_TEST.app.set('language','EN')
+ for _=1,60 do H.clock=H.clock+1/30; script.update(1/30) end
+ check(H.storage['spe:'].settings:find('"EN"',1,true)~=nil,'saved after a real change')
+end
+-- Bureau jamais lisible depuis le lancement (CSP sans bureaux) : un seul bureau, le 1 ; overlays affichés.
+function T.desktop_never_readable_uses_desktop_one()
+ H.startDesktop=-5
+ race(true,10,false)
+ H.startDesktop=nil
+ local app=SPE_TEST.app
+ H.windowIds={}; script.SPE__HUD()
+ check(app.desktop==1 and app.desktopAvailable==true and H.windowIds['SpotterEnginer_d1_spotter'],'never readable: desktop 1, overlays drawn')
+ H.desktop=0
+end
+-- Version « Beta 2.0.0 » jamais affichée « vBeta 2.0.0 » ; fonds rétablis sans rallumer la barre d'accent.
+function T.header_version_and_backgrounds()
+ race(true,5,false)
+ local app=SPE_TEST.app
+ H.space=vec2(860,640); H.texts={}; script.SPE__MAIN()
+ check(not texted('vBeta'),'no « vBeta »')
+ app.backgrounds('transparent'); app.backgrounds('solid')
+ check(app.cfg.spotterAccent==false and app.cfg.engineerAccent==false,'restoring backgrounds keeps the accent bar off')
 end
 -- Bureau illisible (comme SuperHUD) : overlays suspendus, leurs réglages refusés (ils iraient dans un autre bureau).
 function T.unreadable_desktop_suspends_overlays()
@@ -894,7 +993,7 @@ function T.update_offered_in_header()
  check(app.errors.count==before and H.fonts==0 and H.clips==0,'narrow window with an update offered')
  app.toggleMute(); app.set('language','FR'); app.updatePort.ready=false; u.phase='idle'; u.release=nil
 end
--- 1.3.9 : SuperHUD installé, alertes sonores de son radar actives : le côte à côte lui est laissé ; ses blocs sont
+-- Beta 2.0.0 : SuperHUD installé, alertes sonores de son radar actives : le côte à côte lui est laissé ; ses blocs sont
 -- évités par les overlays en position automatique.
 function T.superhud_radar_and_blocks()
  local pos={}

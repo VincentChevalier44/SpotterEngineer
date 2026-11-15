@@ -3,6 +3,7 @@
 -- sensibilité du temps au tour à l'adhérence perdue (régression sur les tours propres), perte de la voie des stands
 -- (mesurée sur les arrêts du joueur et sur ceux des IA), tendance des températures (piste, et air pour moitié).
 local U=require('src/util')
+local Config=require('src/config')
 local S=require('src/strategy')
 local M={}
 function M.new()
@@ -19,7 +20,6 @@ local function gripLoss(curves,kmF,kmR)
  if curves.R then sum=sum+math.max(0,curves.R.max-S.eval(curves.R,kmR)); n=n+1 end
  return n>0 and sum/n or nil
 end
-M.gripLoss=gripLoss
 -- Tendance de la température qui use les pneus (°C par minute, 10 dernières minutes) : piste, plus la moitié de la
 -- température de l'air (l'air refroidit moins les pneus quand il se réchauffe).
 local function trend(d)
@@ -170,7 +170,7 @@ function M.model(d,car,cfg,pace,fuelK)
  local m=S.defaultModel()
  m.fuelK=fuelK or cfg.fuelK or m.fuelK
  m.fuelPerLap=d.fuelPerLap or car.fuelPerLap or m.fuelPerLap
- m.tank=car.tank or m.tank; m.fuel=car.fuel or m.fuel; m.fuelMargin=cfg.fuelMargin or 1
+ m.tank=car.tank or m.tank; m.fuel=car.fuel or m.fuel; m.fuelMargin=Config.fuelMarginLitres(cfg,m.fuelPerLap)
  m.wearF=car.curves and car.curves.F or nil; m.wearR=car.curves and car.curves.R or nil
  m.kmF=d.kmF or m.kmF; m.kmR=d.kmR or m.kmR
  m.km0F=car.km0F or 0; m.km0R=car.km0R or 0; m.age0=d.tyreAge

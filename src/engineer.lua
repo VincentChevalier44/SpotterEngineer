@@ -1,6 +1,7 @@
 -- Ingénieur : rythme et consignes, carburant, pneus, freins, dégâts, conditions, pilotage ; la stratégie d'arrêt est
 -- dans src/strategist.lua. Module pur : tout passe par ctx (image F, liaison, radio, réglages, chronométrage).
 local U=require('src/util')
+local Config=require('src/config')
 local Say=require('src/say')
 local Timing=require('src/timing')
 local Coach=require('src/coach')
@@ -252,7 +253,8 @@ function M.fuelStatus(e,F,cfg)
  local total=plan and plan.total or Strategist.total(t,F,me)
  local stop=t.ready and plan and plan.ok and (t.boxLap or plan.optimal) or nil
  local target=stop and stop-me.laps or (total and total>0 and total-me.laps) or nil
- local have=(F.me.fuel-(cfg.fuelMargin or 0))/fpl
+ -- Marge commune aux apps (comme SuperHUD et SetupLab) : Config.fuelMarginLitres (tours de réserve et litres).
+ local have=(F.me.fuel-Config.fuelMarginLitres(cfg,fpl))/fpl
  local st=e.fuelView
  if not st then st={}; e.fuelView=st end
  st.fpl=fpl; st.laps=F.me.fuel/fpl; st.have=have; st.target=target; st.delta=target and have-target or nil; st.toStop=stop~=nil; st.total=total
@@ -308,6 +310,8 @@ local function uneven(t,a,b,names)
  return nil
 end
 M.GRAIN_WARM=60
+-- Seuils des défauts de pneu (radio, overlay Ingénieur et SuperHUD alignés) : méplat, cloques, grains.
+M.DEFECT={flat=0.2,blister=0.35,grain=0.35}
 local function tyres(e,ctx,dt)
  local F=ctx.F; local cfg=ctx.cfg; local me=F.cars[F.player]
  -- Passage par les stands retenu pour l'usure anormale (pneus peut-être changés) ; pneus neufs à chauffer.
@@ -349,8 +353,9 @@ local function tyres(e,ctx,dt)
  local defect,why=nil,nil
  for k=1,4 do
   local w=t[k]
-  local d=w.blown and 'crevaison' or w.flat>0.2 and 'méplat' or w.blister>0.35 and 'cloques'
-   or w.grain>0.35 and e.grainWarm[k]>=M.GRAIN_WARM and 'grains' or nil
+  local D=M.DEFECT
+  local d=w.blown and 'crevaison' or w.flat>D.flat and 'méplat' or w.blister>D.blister and 'cloques'
+   or w.grain>D.grain and e.grainWarm[k]>=M.GRAIN_WARM and 'grains' or nil
   if d and not defect then defect,why=k,d end
  end
  e.defectFor=defect and e.defectFor+dt or 0
@@ -545,7 +550,7 @@ local function driving(e,ctx,lapDone)
  local advice=Coach.lap(e.coach,clean and not (d and d.neutral),cfg.drivingLoss)
  if advice and cfg.driving then M.coachCall(e,ctx,advice) end
 end
--- SetupLab (1.3.9, app facultative ; ctx.setuplab : src/setuplab.lua). Hors course seulement : à chaque tour d'essai
+-- SetupLab (Beta 2.0.0, app facultative ; ctx.setuplab : src/setuplab.lua). Hors course seulement : à chaque tour d'essai
 -- jugé (hausse de tid), le verdict de SetupLab (jamais le nôtre) : « plus rapide de 0,3 s » / « plus lent » avec le
 -- changement principal (tch : groupe qui porte le plus gros gain prévu, jamais dit comme une cause), « pas de différence
 -- nette » ; rien tant que SetupLab attend (wait), même avec un écart chiffré. Un verdict n'est redit que s'il change

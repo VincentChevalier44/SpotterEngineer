@@ -1,4 +1,4 @@
--- SuperHUD (1.3.9, facultatif : SpotterEnginer ne dépend que d'AdvancedIA) : clé ac.store « SuperHUD.state » écrite par
+-- SuperHUD (Beta 2.0.0, facultatif : SpotterEnginer ne dépend que d'AdvancedIA) : clé ac.store « SuperHUD.state » écrite par
 -- SuperHUD 1.9.6 et plus (contrat v1 avec sa session, 13/11/2026), relue ici. Module pur.
 --   v=1;desk=<bureau CSP 1-4>;sw=<largeur écran px>;sh=<hauteur px>;radar=0|1;stamp=<s>;rects=<x>,<y>,<w>,<h>/...
 -- 1000 octets au plus ; champs futurs ajoutés en fin de texte ; champ illisible : inconnu.
@@ -58,24 +58,32 @@ end
 function M.radar(s,now) local v=M.get(s,now); return v~=nil and v.radar==true end
 -- Blocs de SuperHUD à éviter sur le bureau desk (écran sw x sh) : ceux affichés maintenant et ceux vus depuis moins de
 -- M.KEEP s sur ce bureau, ramenés à notre écran si SuperHUD en donne une autre taille.
+local EMPTY={}
+local function byPlace(a,b) if a.y~=b.y then return a.y<b.y end return a.x<b.x end
+-- Liste renvoyée réutilisée (dessin à chaque image : aucune table neuve) ; à lire tout de suite.
 function M.blocks(s,now,desk,sw,sh)
  local v=M.get(s,now)
- if not v then return {} end
+ if not v then return EMPTY end
  -- Bureau illisible chez SuperHUD (desk=0 : il suspend ses blocs) ou autre bureau : rien à éviter.
- if not v.desk or desk and v.desk~=desk then return {} end
+ if not v.desk or desk and v.desk~=desk then return EMPTY end
  local fx=(v.sw and sw) and sw/v.sw or 1
  local fy=(v.sh and sh) and sh/v.sh or 1
  local mem=s.blocks[desk or 0]
  if not mem then mem={}; s.blocks[desk or 0]=mem end
  for _,r in ipairs(v.rects) do
-  local k=r.x..','..r.y..','..r.w..','..r.h
-  mem[k]={x=r.x*fx,y=r.y*fy,w=r.w*fx,h=r.h*fy,at=now}
+  local k=r.key
+  if not k then k=r.x..','..r.y..','..r.w..','..r.h; r.key=k end
+  local m=mem[k]
+  if not m then m={}; mem[k]=m end
+  m.x=r.x*fx; m.y=r.y*fy; m.w=r.w*fx; m.h=r.h*fy; m.at=now
  end
- local out={}
+ local out=s.out
+ if not out then out={}; s.out=out end
+ for i=#out,1,-1 do out[i]=nil end
  for k,r in pairs(mem) do
   if now-r.at>M.KEEP or now<r.at then mem[k]=nil else out[#out+1]=r end
  end
- table.sort(out,function(a,b) if a.y~=b.y then return a.y<b.y end return a.x<b.x end)
+ table.sort(out,byPlace)
  return out
 end
 local GAP=8
@@ -87,14 +95,15 @@ local function hits(x,y,w,h,list)
 end
 -- Position libre la plus proche de (x, y) en restant dans la même colonne (décalage vertical seulement) ; sans place
 -- libre à l'écran, la position d'origine.
+local function free(x,cy,w,h,list,sh) return cy>=0 and cy+h<=sh and not hits(x,cy,w,h,list) end
 function M.avoid(x,y,w,h,list,sh)
  if #list==0 or not hits(x,y,w,h,list) then return x,y end
  local best,dist=nil,math.huge
- local function try(cy)
-  if cy<0 or cy+h>sh then return end
-  if not hits(x,cy,w,h,list) and math.abs(cy-y)<dist then best=cy; dist=math.abs(cy-y) end
+ for _,r in ipairs(list) do
+  local a,b=r.y+r.h+GAP,r.y-h-GAP
+  if free(x,a,w,h,list,sh) and math.abs(a-y)<dist then best=a; dist=math.abs(a-y) end
+  if free(x,b,w,h,list,sh) and math.abs(b-y)<dist then best=b; dist=math.abs(b-y) end
  end
- for _,r in ipairs(list) do try(r.y+r.h+GAP); try(r.y-h-GAP) end
  if best then return x,best end
  return x,y
 end

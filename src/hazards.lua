@@ -34,8 +34,8 @@ M.TANGLE={range=700,loss=25,wait=1.2,again=30,sample=0.2}
 M.QUIET=10
 local MIN_TRACK=U.MIN_TRACK
 function M.new() return {said={},hits={},pending={},tangleAt=-1e9,kA={},tA={},kB={},tB={}} end
--- Nature du danger d'une voiture (clé du clip, priorité) ou nil (me : gardé pour les appels existants, non lu).
-function M.kind(c,lc,me,d)
+-- Nature du danger d'une voiture (clé du clip, priorité) ou nil.
+function M.kind(c,lc,d)
  local grid=d and (d.red or d.standing=='grid' or d.standing=='lights' or d.standing=='form' or d.standing=='roll')
  if lc and lc.wrong then return 'wrongWay',1 end
  if lc and lc.incident and lc.spin then return 'spinAhead',1 end
@@ -118,7 +118,7 @@ function M.step(h,ctx)
     local lc=Link.car(ctx.link,i)
     -- Voiture de sécurité d'AdvancedIA : jamais un danger (elle roule lentement devant la file par nature).
     local kind,prio=nil,nil
-    if not (lc and lc.safety) then kind,prio=M.kind(c,lc,me,d) end
+    if not (lc and lc.safety) then kind,prio=M.kind(c,lc,d) end
     if kind then
      local closing=(kind=='wrongWay' and me.kmh+c.kmh or me.kmh-c.kmh)/3.6
      local eta=ahead/math.max(3,closing)

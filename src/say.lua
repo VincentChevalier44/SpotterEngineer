@@ -30,7 +30,9 @@ function M.pick(s,id,tone)
    if match(c.tone) and (s.files[s.lang..'/'..c[s.lang]] or not next(s.files)) then list[#list+1]=v end
   end
  end
- fill(function(x) return x==want or want=='neutral' and x=='calm' end)
+ -- Un ton demandé garde aussi les variantes neutres (relecture du 15/11/2026 : sinon la formulation neutre de base ne
+ -- jouait plus jamais dès qu'un ton était passé, « position gagnée » par exemple) ; sans ton : neutres et calmes.
+ fill(function(x) return x==want or x=='neutral' or want=='neutral' and x=='calm' end)
  if #list==0 then fill(function(x) return x=='neutral' end) end
  if #list==0 then return id end
  local last=s.lastPick[id]
@@ -253,10 +255,12 @@ function M.say(s,role,key,prio,parts,now,opts)
   clips=M.paths(s,digits)
   if clips then atoms=digits end
  end
- -- s.prefix (1.3.9, radio de la voiture regardée, src/spectator.lua) : nom de la voiture et CAMÉRA devant le texte.
+ -- s.prefix (Beta 2.0.0, radio de la voiture regardée, src/spectator.lua) : nom de la voiture et CAMÉRA devant le texte.
  local text=opts.text or textOf(s,atoms)
  if s.prefix then text=s.prefix..text end
  return Voice.say(s.voice,{key=key,role=role,prio=prio,clips=clips,text=text,ttl=opts.ttl or Voice.TTL,
-  cooldown=opts.cooldown or 0,kind=opts.kind,chirp=s.chirp,once=opts.once,fresh=opts.fresh,sense=sense,tone=opts.tone},now)
+  cooldown=opts.cooldown or 0,kind=opts.kind,chirp=s.chirp,once=opts.once,fresh=opts.fresh,sense=sense,tone=opts.tone,
+  -- Annonce de la voiture regardée (src/spectator.lua) : jamais gardée dans la mémoire du joueur au rechargement.
+  cam=s.prefix~=nil},now)
 end
 return M

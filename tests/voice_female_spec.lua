@@ -1,4 +1,4 @@
--- Voix du spotter (1.3.9) : féminine pour le spotter (clips du spotter seul à leur place, copies de F/ pour les clips
+-- Voix du spotter (Beta 2.0.0) : féminine pour le spotter (clips du spotter seul à leur place, copies de F/ pour les clips
 -- communs, nombres, durées et positions), masculine pour l'ingénieur ; sans copie féminine, le clip lui-même.
 local Say=require('src/say')
 local Voice=require('src/voice')

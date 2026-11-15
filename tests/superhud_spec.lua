@@ -1,4 +1,4 @@
--- SuperHUD (1.3.9, app facultative) : lecture de la clé SuperHUD.state (contrat v1 avec sa session, 13/11/2026), clé
+-- SuperHUD (Beta 2.0.0, app facultative) : lecture de la clé SuperHUD.state (contrat v1 avec sa session, 13/11/2026), clé
 -- vivante seulement si elle change, blocs évités par les overlays en position automatique, sections cachées sans SuperHUD.
 local SuperHUD=require('src/superhud')
 local Config=require('src/config')
@@ -42,7 +42,9 @@ function T.superhud_blocks_avoided_in_automatic_position()
  local text=state({stamp='1'})
  local function read() return text end
  SuperHUD.step(s,read,0); text=state({stamp='2'}); SuperHUD.step(s,read,1)
- local b=SuperHUD.blocks(s,1,1,1920,1080)
+ -- Liste renvoyée réutilisée d'un appel à l'autre (aucune table neuve à chaque image) : copiée ici.
+ local function copy(l) local o={}; for i,r in ipairs(l) do o[i]={x=r.x,y=r.y,w=r.w,h=r.h} end; return o end
+ local b=copy(SuperHUD.blocks(s,1,1,1920,1080))
  check(#b==2,'two blocks on desktop 1')
  check(#SuperHUD.blocks(s,1,2,1920,1080)==0,'other desktop: nothing to avoid')
  local s0=SuperHUD.new(); local t0=state({desk='0',stamp='1'}); local function r0() return t0 end

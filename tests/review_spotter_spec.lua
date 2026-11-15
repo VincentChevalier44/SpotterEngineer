@@ -473,7 +473,7 @@ function T.no_pit_calls_while_in_the_pits()
  d.pitState='open'; d.pitDue=1; at(ctx,2); Spotter.step(s,ctx)
  check(queued(v,'pitCall'),'on track: window call said')
 end
--- 1.3.9 (demande du pilote) : fin de VSC décomptée « 3, 2, 1 », puis « Go » à la relance au lieu du vert complet.
+-- Beta 2.0.0 (demande du pilote) : fin de VSC décomptée « 3, 2, 1 », puis « Go » à la relance au lieu du vert complet.
 function T.vsc_end_countdown()
  local function run(on)
   local ctx,v=scene({})
@@ -560,5 +560,18 @@ function T.start_aborted()
  check(q and q.text:match('arrêté'),'standing start next: '..tostring(q and q.text))
  lights,after,q=run(1)
  check(q and q.text:match('lancé'),'rolling start next: '..tostring(q and q.text))
+end
+-- Relecture du 15/11/2026 : damier pas redit après un rechargement de l'app déjà après la ligne.
+function T.chequered_not_repeated_after_reload()
+ local ctx,v=scene({})
+ local me=ctx.F.cars[0]; me.laps=10; me.finished=true
+ ctx.resumed=true
+ local s=Spotter.new()
+ at(ctx,1); Spotter.finish(s,ctx); at(ctx,20); Spotter.finish(s,ctx)
+ check(not queued(v,'chequered'),'reloaded after the line: not said again')
+ local ctx2,v2=scene({}); ctx2.F.cars[0].laps=10
+ local s2=Spotter.new(); at(ctx2,1); Spotter.finish(s2,ctx2)
+ ctx2.F.cars[0].finished=true; at(ctx2,2); Spotter.finish(s2,ctx2); at(ctx2,30); Spotter.finish(s2,ctx2)
+ check(queued(v2,'chequered')~=nil,'normal finish: said')
 end
 return T

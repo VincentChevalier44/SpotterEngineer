@@ -2,6 +2,24 @@
 
 All notable changes to SpotterEnginer. Newest first. SpotterEnginer requires AdvancedIA: see [COMPATIBILITY.md](COMPATIBILITY.md).
 
+## Unreleased
+
+### Fixed: full review of the app
+- Watched-car radio: switching the camera from one car to another no longer falls back to your own radio for 2 s (the Safety Car was called twice); formation laps and rolling starts are read correctly for the watched car; what it says no longer silences or re-arms your own calls when you drive again; it follows your **Varied phrasing**, **Tyres** and **Brakes** settings.
+- The Spotter overlay shows the watched car's sides and gaps while its radio speaks, never your frozen ones; its last radio line is no longer cut at the bottom.
+- Timed races: the lap count now follows the leader, so a driver a few seconds behind him no longer gets one lap too few (fuel, last lap, plan).
+- A rival entering the pit lane for a drive-through, or cutting the pit entry for a moment, is no longer taken for a pit stop ("cover, box").
+- No pit plan is published to the other apps after the finish; the chequered flag is not said again after the app reloads past the line; rival penalties are ignored while your position is unknown.
+- Settings: an unreadable settings file is no longer overwritten with the defaults (logged instead); **Reset all** respects an unreadable desktop; **Restore backgrounds** no longer turns the accent bar back on; the desktop tag is no longer shown on settings common to all desktops; on a CSP build without desktops, the overlays use desktop 1 instead of staying hidden.
+- Header: the version reads "Beta 2.0.0", not "vBeta 2.0.0"; the "up to date" time follows each new check. Phrase variants asked with a tone now also include the neutral wording.
+
+### Changed: a lighter home page
+- The volumes and the **Car sound during the radio** settings are no longer on the home page; they stay in the **Radio** tab.
+
+### Changed: same fuel margin and tyre thresholds as SuperHUD
+- Fuel: the engineer now keeps one reserve lap plus 2 L, the margin SuperHUD and SetupLab use, so the three apps agree on "short" and "enough". New setting **Reserve laps** (1), and **Fuel margin** now defaults to 2 L. A margin left at the old default of 1 L becomes 2 L with one reserve lap; a margin you set yourself is kept, with no reserve lap added on top.
+- Engineer overlay: tyre defects are shown at the radio's thresholds (flat spot above 0.2, blisters above 0.35, graining above 0.35 only on a tyre warm for 60 s), as in SuperHUD. Before, the overlay used 0.3 for all three.
+
 ## Beta 2.0.0 — 14 November 2026
 
 SpotterEnginer moves to Beta 2.0.0 together with AdvancedIA Beta 2.0.0: same bridge (v2), released the same day.

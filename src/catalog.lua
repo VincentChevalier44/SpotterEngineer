@@ -1,14 +1,14 @@
 -- Catalogue des clips de voix : fichier par langue (vox/FR, vox/EN) et texte dit, pour chaque clip. Les annonces sont des
 -- suites de clips (phrases composées) ; un clip absent du disque rend l'annonce écrite seulement (radio de l'overlay).
--- Les textes sont ceux réellement dits. Tous les clips sont générés par tools/generer_voix.py (même voix que les clips
--- d'origine 01 à 34 : edge-tts, fr-FR-HenriNeural et en-US-GuyNeural) ; liste : vox/VOICE_CLIPS.md, refaite par
+-- Les textes sont ceux réellement dits. Tous les clips sont générés par tools/generer_voix.py (ingénieur : même voix que
+-- les clips d'origine 01 à 34, edge-tts fr-FR-HenriNeural et en-US-GuyNeural ; spotter : voix féminine, voir C.femaleVoices) ; liste : vox/VOICE_CLIPS.md, refaite par
 -- tests/run.py à partir de ce fichier. Sous-dossiers : nombres (num/), durées (sec/), positions (pos/) ; bornes et
 -- nombre de fichiers attendus définis ici seulement (C.maxNumber, C.maxTenths, C.maxPosition, C.fileCount).
 local C={}
 C.languages={'FR','EN'}
 -- Sous-dossiers des clips dans vox/<LANGUE> (lus par src/port.lua, générés par tools/generer_voix.py).
 C.subfolders={'','num/','sec/','pos/','F/','F/num/','F/sec/','F/pos/'}
--- Voix du spotter (1.3.9, choix du pilote : voix féminine, Denise en français, Jenny en anglais ; l'ingénieur garde
+-- Voix du spotter (Beta 2.0.0, choix du pilote : voix féminine, Denise en français, Jenny en anglais ; l'ingénieur garde
 -- la voix masculine). C.spotterOnly : clips dits seulement par le spotter, en voix féminine à leur place. C.shared :
 -- clips dits par les deux rôles (et mots des nombres), en voix masculine à leur place et féminine dans F/ ; nombres,
 -- durées et positions aussi (F/num, F/sec, F/pos). Le spotter prend la version de F/ quand elle existe (src/say.lua).
@@ -292,7 +292,7 @@ local list={
  {'blueClass',231,'231_classe_plus_rapide',"Classe plus rapide derrière, garde ta ligne et laisse-la passer.",'231_faster_class',"Faster class behind, hold your line and let it through."},
  {'crossWet',232,'232_passage_pneus_pluie',"Passage aux pneus pluie dans",'232_rain_tyres_in',"Rain tyres in"},
  {'crossDry',233,'233_retour_pneus_secs',"Retour aux pneus secs dans",'233_slicks_in',"Back to slicks in"},
- -- SetupLab (1.3.9, app facultative, src/setuplab.lua) : verdict des tours d'essai, groupe de réglages changé, version prête.
+ -- SetupLab (Beta 2.0.0, app facultative, src/setuplab.lua) : verdict des tours d'essai, groupe de réglages changé, version prête.
  {'setupBetter',234,'234_reglage_plus_rapide',"Le nouveau réglage est plus rapide, de",'234_setup_faster',"The new setup is faster, by"},
  {'setupWorse',235,'235_reglage_plus_lent',"Le nouveau réglage est plus lent, de",'235_setup_slower',"The new setup is slower, by"},
  {'setupSame',236,'236_reglage_pareil',"Pas de différence nette avec le nouveau réglage.",'236_setup_same',"No clear difference with the new setup."},

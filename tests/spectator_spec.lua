@@ -1,4 +1,4 @@
--- Radio de la voiture regardée (1.3.9) : quand le joueur ne pilote pas, après 2 s sur la même voiture ; sortie
+-- Radio de la voiture regardée (Beta 2.0.0) : quand le joueur ne pilote pas, après 2 s sur la même voiture ; sortie
 -- immédiate ; arrêt au stand normal : il pilote toujours.
 local Spectator=require('src/spectator')
 local check=require('tests/helpers').check
@@ -34,5 +34,26 @@ function T.spectator_only_when_not_driving()
  check(Spectator.target(st,F,cfg,50)==-1,'setting off: never')
  F.cars[0].ai=true; cfg.spectatorRadio=true; F.focus=0
  check(Spectator.target(st,F,cfg,60)==-1 and Spectator.target(st,F,cfg,63)==-1,'camera on the player: never')
+end
+-- Mémoire de la radio du joueur remise telle quelle au retour (ce que la voiture regardée a dit ne la touche pas).
+function T.spectator_keeps_player_radio_memory()
+ local v={last={hold=100},heard={tyresHot=90},started={inSecond=80},done={hold=100}}
+ local st=Spectator.new()
+ Spectator.keepMemory(st,v)
+ v.last.hold=nil; v.last.gaps=200; v.heard.tyresHot=210; v.started.heInSecond=205; v.done.gaps=200
+ Spectator.restoreMemory(st,v)
+ check(v.last.hold==100 and v.last.gaps==nil,'cooldowns back as before')
+ check(v.heard.tyresHot==90 and v.started.heInSecond==nil and v.started.inSecond==80 and v.done.gaps==nil,'heard and started back as before')
+end
+-- Changement de voiture regardée : attente sans revenir à la radio du joueur (-2).
+function T.spectator_switch_never_falls_back_to_player()
+ local st=Spectator.new(); local F={player=0,focus=1,count=3,cars={}}
+ for i=0,2 do F.cars[i]={valid=true,retired=i==0,ai=false,inPit=false,kmh=150} end
+ local cfg={spectatorRadio=true}
+ Spectator.target(st,F,cfg,0); check(Spectator.target(st,F,cfg,2.1)==1,'car 2')
+ st.index=1
+ F.focus=2
+ check(Spectator.target(st,F,cfg,3)==-2,'switching: stay on the watched-car radio, silent')
+ check(Spectator.target(st,F,cfg,5.2)==2,'then car 3')
 end
 return T

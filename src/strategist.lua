@@ -9,11 +9,13 @@ local Timing=require('src/timing')
 local Link=require('src/link')
 local Say=require('src/say')
 local M={}
+-- Temps passé dans la voie avant de juger qu'un rival s'arrête (s).
+M.RIVAL_LANE=1
 -- Table vide partagée (voiture sans données, courbes absentes) : jamais modifiée.
 local NONE={}
 function M.new()
  return {data=SD.new(),car=nil,plan=nil,model=nil,duel=nil,rejoin=nil,solvedLap=-1,solvedAt=-1e9,neutral=false,
-  announcedWindow=nil,boxSaid={},lastPit={},rivalPit={},costMs=0,status='learning',neutralBox=false,targetPrev=nil,ready=false,pitDueSeen=false,boxLap=false,stopDone=false,
+  announcedWindow=nil,boxSaid={},lastPit={},rivalPit={},rivalLaneAt={},rivalSaid={},costMs=0,status='learning',neutralBox=false,targetPrev=nil,ready=false,pitDueSeen=false,boxLap=false,stopDone=false,
   stayOutSaid=false,hadStop=false,noMoreSaid=false,exitAt=-1e9,windowAt=-1e9}
 end
 -- Retard sur le leader en tours, en continu (tours + fraction) : stable quand le leader passe la ligne avant le joueur
@@ -27,19 +29,33 @@ local function behindLeader(F,me)
  return 0
 end
 M.behindLeader=behindLeader
+-- Voiture en tête (le joueur s'il mène, ou faute de classement).
+local function leaderOf(F,me)
+ if me.position==1 then return me end
+ for i=0,F.count-1 do local c=F.cars[i]; if c.valid and c.position==1 then return c end end
+ return me
+end
 -- Tours de la course : course aux tours, ou course au temps (temps restant / rythme, plus le tour de plus éventuel).
--- over : tours finis du joueur quand le temps s'est écoulé (retenu à chaque image, M.step).
-local function totalLaps(F,me,pace,over)
+-- over, overLeader : tours finis du joueur et du leader quand le temps s'est écoulé (retenus à chaque image, M.step).
+-- Course au temps (relecture du 15/11/2026) : la course finit pour tous au passage du leader après l'échéance ; un
+-- joueur à quelques secondes derrière lui, encore dans son tour à l'échéance, en fait un de plus que son propre
+-- chrono ne le dit. Tours du leader, puis ceux du joueur d'après son retard (même rythme supposé).
+local function totalLaps(F,me,pace,over,overLeader)
  -- Course aux tours : un pilote attardé en fait moins (tours de retard sur le leader).
  if not F.timed and F.laps>0 then return math.max(me.laps+1,math.ceil(F.laps-behindLeader(F,me)-1e-6)) end
  if pace and pace>0 and F.timeLeft>0 then
   -- Course au temps : le tour en cours compte (fraction déjà faite), puis les tours que permet le temps restant.
-  return me.laps+math.max(1,math.floor(F.timeLeft/pace+(me.spline or 0))+1)+(F.additional and 1 or 0)
+  local L=leaderOf(F,me)
+  local leaderTotal=L.laps+math.max(1,math.floor(F.timeLeft/pace+(L.spline or 0))+1)+(F.additional and 1 or 0)
+  return math.max(me.laps+1,math.ceil(leaderTotal-behindLeader(F,me)-1e-6))
  end
  -- Temps écoulé : le tour de l'échéance, et le tour de plus s'il existe. Compté depuis le tour de l'échéance, pas
  -- depuis le tour en cours : avec le tour de plus, il restait « deux tours » pendant tout le dernier tour (carburant
  -- jugé court, « box ce tour-ci » dans le dernier tour).
- if F.timed and pace and pace>0 then return math.max(me.laps+1,(over or me.laps)+1+(F.additional and 1 or 0)) end
+ if F.timed and pace and pace>0 then
+  if not overLeader then return math.max(me.laps+1,(over or me.laps)+1+(F.additional and 1 or 0)) end
+  return math.max(me.laps+1,math.ceil(overLeader+1+(F.additional and 1 or 0)-behindLeader(F,me)-1e-6))
+ end
  return F.laps>0 and F.laps or me.laps+1
 end
 -- Tours de la course sans plan (stratégie coupée, plan pas encore calculé), pour le carburant de l'ingénieur ; nil
@@ -47,7 +63,7 @@ end
 function M.total(t,F,me)
  if F.timed then if not (t.pace and t.pace>0) then return nil end
  elseif (F.laps or 0)<=0 then return nil end
- return totalLaps(F,me,t.pace,t.overLap)
+ return totalLaps(F,me,t.pace,t.overLap,t.overLeader)
 end
 -- Arrêts du joueur vus depuis l'ouverture de la fenêtre (compteur d'arrêts d'AdvancedIA suivi pendant l'état « open »),
 -- ou nil si l'ouverture n'a pas été vue par cet état de l'app (rechargement dans la fenêtre : compte inconnu).
@@ -138,7 +154,7 @@ M.ready=ready
 local function fuelEffect(F,cfg) if F.fuelRate==0 or F.me.fuel<=0 then return 0 end return cfg.fuelK end
 M.fuelEffect=fuelEffect
 -- Consommation par tour avant toute mesure (une seule règle pour le modèle, la radio et les overlays) : celle de SetupLab
--- (1.3.9, t.setupFpl, posée par l'ingénieur : setup de course, clé acceptée), sinon celle d'AC, sinon nil.
+-- (Beta 2.0.0, t.setupFpl, posée par l'ingénieur : setup de course, clé acceptée), sinon celle d'AC, sinon nil.
 function M.baseFuel(t,F)
  return t.setupFpl or (F.me.fuelPerLapAC>0 and F.me.fuelPerLapAC) or nil
 end
@@ -161,7 +177,7 @@ local function solve(t,ctx)
  local frac=me.pitlane and 0 or math.max(0,math.min(0.99,(me.spline or 0)%1))
  m.fuel=m.fuel+frac*m.fuelPerLap; m.km0F=math.max(0,m.km0F-frac*(m.kmF or 0)); m.km0R=math.max(0,m.km0R-frac*(m.kmR or 0))
  local done=me.laps
- local total=totalLaps(F,me,p,t.overLap)
+ local total=totalLaps(F,me,p,t.overLap,t.overLeader)
  local owed,open,close=rules(d,done,total,p,F,behindLeader(F,me),(me.spline or 0)%1,t.winStops,Link.owedBeforeWindow(ctx.link,d))
  local race={done=done,total=total,mandatory=owed,windowOpen=open,windowClose=close}
  -- Rivaux pour la ressortie : progression, rythme, arrêt prévu par AdvancedIA.
@@ -252,7 +268,8 @@ function M.step(t,ctx)
  -- Rythme de référence : il ne change qu'à la fin d'un tour du joueur (gardé pour M.total, sans plan).
  if t.paceLap~=me.laps then t.paceLap=me.laps; t.pace=pace(t,ctx) end
  -- Course au temps : tour du joueur où le temps s'est écoulé (totalLaps).
- if F.timed and F.timeLeft and F.timeLeft<=0 then t.overLap=t.overLap or me.laps else t.overLap=nil end
+ if F.timed and F.timeLeft and F.timeLeft<=0 then t.overLap=t.overLap or me.laps; t.overLeader=t.overLeader or leaderOf(F,me).laps
+ else t.overLap=nil; t.overLeader=nil end
  M.windowStops(t,d)
  -- Arrêts de toutes les voitures : perte de voie mesurée, âge des pneus des rivaux.
  for i=0,F.count-1 do
@@ -264,7 +281,16 @@ function M.step(t,ctx)
    if t.rivalPit[i]==nil then t.rivalPit[i]=c.pitlane end
    -- Avant le départ (1.3.7 : AC replace les voitures pour la course, « la voiture devant rentre aux stands » dit sur
    -- la grille) : rien.
-   if c.pitlane and not t.rivalPit[i] and i~=F.player and F.started then
+   -- Entrée dans la voie tenue RIVAL_LANE s (une coupe de l'entrée des stands met pitlane une image), et jamais pour
+   -- une pénalité à purger (drive-through, stop-and-go d'AdvancedIA : relecture du 15/11/2026, « cover, box » pour
+   -- un drive-through).
+   if c.pitlane and not t.rivalPit[i] then t.rivalLaneAt[i]=ctx.now; t.rivalSaid[i]=false end
+   local lcp=Link.car(ctx.link,i)
+   -- Pénalité vue pendant ce passage : rien à dire, même quand elle s'efface avant la sortie de la voie.
+   if c.pitlane and lcp and (lcp.pending or 0)~=0 then t.rivalSaid[i]=true end
+   local held=c.pitlane and t.rivalLaneAt[i] and ctx.now-t.rivalLaneAt[i]>=M.RIVAL_LANE and not t.rivalSaid[i]
+   if held and not (lcp and (lcp.pending or 0)~=0) and i~=F.player and F.started then
+    t.rivalSaid[i]=true
     -- Voiture directement devant qui rentre aux stands ; overcut favorable (1.3.0, réglage « Stratégie commentée ») :
     -- « on reste dehors, on fait l'overcut ». Voiture directement derrière qui rentre et peut passer devant par l'undercut :
     -- « il rentre, on couvre, box ce tour-ci » si l'arrêt ce tour-ci reste dans la fenêtre et coûte peu (M.cover).
@@ -466,7 +492,8 @@ function M.pitplan(t,ctx,on)
  local stamp=math.max(0,math.floor(tonumber(F.clock) or 0))
  local box=ctx.cfg.boxCalls and 1 or 0
  local state,lap,a,b='none',0,0,0
- if on and F.isRace and me and me.valid and t.ready and plan and plan.ok then
+ -- Course finie : plus de plan publié (relecture du 15/11/2026 : « planned » restait après le damier).
+ if on and F.isRace and me and me.valid and not me.finished and t.ready and plan and plan.ok then
   local cur=me.laps+1
   local L=t.boxLap or plan.optimal
   -- Arrêt fait : voie des stands empruntée pendant un plan ; tenu jusqu'à ce qu'un arrêt suivant soit prévu.

@@ -1,4 +1,4 @@
--- Radio de la voiture regardée (1.3.9, demande du pilote : « quand je change de caméra, j'entends le spotter de la
+-- Radio de la voiture regardée (Beta 2.0.0, demande du pilote : « quand je change de caméra, j'entends le spotter de la
 -- voiture que j'ai sélectionnée ») : réglage spectatorRadio, actif par défaut. Jamais quand le joueur pilote (sa radio
 -- seule) : seulement quand il ne pilote pas (abandon, IA au volant, voiture arrêtée dans la voie des stands ou au stand
 -- plus de PARK s : retour aux stands d'une pénalité, garage), la caméra
@@ -18,7 +18,10 @@ local M={}
 M.ENTER=2
 M.PARK=10
 -- Champs du pont communs à toutes les voitures (liste blanche) : tout le reste garde sa valeur neutre.
-M.GLOBAL={'neutral','neutralMode','ending','endingLeft','safetyPhase','red','greenLeft','relaunch','wet','wetSerial','pitsClosed'}
+-- standing (départ, tour de formation, départ lancé) et serial (redémarrage d'AdvancedIA) : sans eux, une formation
+-- se disait « FCY » et un départ lancé donnait du côte à côte (relecture du 15/11/2026).
+M.GLOBAL={'neutral','neutralMode','ending','endingLeft','safetyPhase','red','greenLeft','relaunch','wet','wetSerial','pitsClosed',
+ 'standing','serial'}
 -- Valeurs neutres : selon le type, puis les sentinelles (aucune voiture lente, panneau et départ sans état, fenêtre
 -- d'arrêt hors service, aucun message).
 local NEUTRAL={}
@@ -58,7 +61,9 @@ function M.target(st,F,cfg,now)
  local want=cfg.spectatorRadio and f>=0 and f~=F.player and F.cars[f] and F.cars[f].valid and not M.driving(st,F,now)
  if not want then st.since=nil; st.wanted=nil; return -1 end
  if st.wanted~=f then st.wanted=f; st.since=now end
- if now-st.since<M.ENTER then return -1 end
+ -- Attente d'ENTER s sur la nouvelle voiture : déjà sur la radio d'une voiture regardée, on y reste sans la faire
+ -- parler (-2) ; jamais un retour de 2 s à la radio du joueur entre deux voitures (relecture du 15/11/2026).
+ if now-st.since<M.ENTER then return st.index>=0 and -2 or -1 end
  return f
 end
 -- Contexte de la voiture regardée, refait à chaque image à partir de celui du joueur (tables gardées).
@@ -88,7 +93,7 @@ end
 -- Petit ingénieur de la voiture regardée : appel aux stands d'AdvancedIA, pneus trop chauds ou froids, freins chauds.
 local sayEngineer=Say.as('engineer')
 local saySpotter=Say.as('spotter')
--- Arrivée sur une voiture (1.3.9, essai du pilote : rien entendu en restant 15 à 30 s sur une IA sans incident) : son
+-- Arrivée sur une voiture (Beta 2.0.0, essai du pilote : rien entendu en restant 15 à 30 s sur une IA sans incident) : son
 -- spotter donne tout de suite sa position et ses écarts devant et derrière (« Tu es P7. Écart devant : 1,2 seconde. »).
 local function briefing(x,i)
  local F=x.F; local me=F.cars[i]
@@ -108,6 +113,7 @@ local function engineer(st,x,i)
  if called and not e.called then sayEngineer(x,'box',1,{'boxThisLap'},{ttl=15}) end
  e.called=called
  if not (v and v.ok) or ((v.tyres[1] or {}).core or 0)<=0 then return end
+ -- Réglages Pneus et Freins de l'ingénieur respectés (comme pour la voiture du joueur).
  local hot,cold=0,0
  for k=1,4 do
   local t=v.tyres[k]
@@ -116,19 +122,37 @@ local function engineer(st,x,i)
   end
  end
  local state=hot>=2 and 'hot' or cold>=3 and 'cold' or 'ok'
- if state~=e.tyres then
+ if state~=e.tyres and cfg.tyres~=false then
   if state=='hot' then sayEngineer(x,'tyreTemp',3,{'tyresHot'},{ttl=15,cooldown=60})
   elseif state=='cold' and e.tyres~=nil then sayEngineer(x,'tyreTemp',4,{'tyresCold'},{ttl=15,cooldown=60}) end
   e.tyres=state
  end
  local b=v.brakes
  local brakeHot=math.max(b[1] or 0,b[2] or 0,b[3] or 0,b[4] or 0)>(cfg.brakeHot or 850)
- if brakeHot and not e.brakes then sayEngineer(x,'brakes',3,{'brakesHot'},{ttl=15,cooldown=90}) end
+ if brakeHot and not e.brakes and cfg.brakes~=false then sayEngineer(x,'brakes',3,{'brakesHot'},{ttl=15,cooldown=90}) end
  e.brakes=brakeHot
 end
--- À chaque image active : radio de la voiture i (i<0 : aucune). Renvoie vrai si la radio est celle de la voiture
--- regardée (celle du joueur ne tourne pas alors). Entrée, changement de voiture et sortie : file vidée.
+-- Mémoire de la radio du joueur (délais par clé, annonces entendues, débuts, fins) : copiée à l'entrée dans la radio
+-- d'une voiture regardée, remise telle quelle au retour. Ce que la voiture regardée a dit ne fait ni taire ni réarmer
+-- les annonces du joueur (relecture du 15/11/2026 : « pneus chauds » d'une IA taisait celui du joueur 180 s).
+local MEM={'last','heard','started','done'}
+local function copy(t) local o={}; for k,v in pairs(t) do o[k]=v end; return o end
+local function keep(st,v) st.mem={}; for _,k in ipairs(MEM) do st.mem[k]=copy(v[k]) end end
+local function restore(st,v)
+ if not st.mem then return end
+ for _,k in ipairs(MEM) do local t=v[k]; for key in pairs(t) do t[key]=nil end; for key,val in pairs(st.mem[k]) do t[key]=val end end
+ st.mem=nil
+end
+M.keepMemory=keep; M.restoreMemory=restore
+-- À chaque image active : radio de la voiture i (i<0 : aucune ; -2 : attente d'une autre voiture regardée, rien dit).
+-- Renvoie vrai si la radio est celle d'une voiture regardée (celle du joueur ne tourne pas alors). Entrée, changement
+-- de voiture et sortie : file vidée.
 function M.step(st,ctx,i,playerSpotter)
+ if i==-2 then
+  if not st.holding then st.holding=true; Voice.purge(ctx.voice,function(q) return tostring(q.key):sub(1,5)~='test:' end,true) end
+  return true
+ end
+ st.holding=false
  if i~=st.index then
   local was=st.index
   st.index=i
@@ -137,10 +161,11 @@ function M.step(st,ctx,i,playerSpotter)
    -- Retour au joueur : rien de ce qui a changé pendant ce temps n'est redit ; délais des annonces de l'autre voiture
    -- oubliés (une position dite pour elle ne bloque pas celle du joueur).
    if playerSpotter then playerSpotter.prev=nil end
-   if Voice.forgetAll then Voice.forgetAll(ctx.voice) end
+   restore(st,ctx.voice)
    st.s=nil; st.eng={}
    return false
   end
+  if was<0 then keep(st,ctx.voice) end
   st.s=Spotter.new()
   -- Côtés : l'inversion apprise pour le joueur vaut pour toutes les voitures (repère du jeu).
   if playerSpotter then st.s.autoFlip=playerSpotter.autoFlip end
@@ -153,7 +178,7 @@ function M.step(st,ctx,i,playerSpotter)
   st.brief=true
  end
  if i<0 then return false end
- st.sayer.lang=ctx.say.lang; st.sayer.chirp=ctx.say.chirp
+ st.sayer.lang=ctx.say.lang; st.sayer.chirp=ctx.say.chirp; st.sayer.vary=ctx.say.vary
  local x=context(st,ctx,i)
  Spotter.step(st.s,x)
  if st.brief then st.brief=false; briefing(x,i) end

@@ -1,4 +1,4 @@
--- Voiture regardée (1.3.9, comme SuperHUD) : la voiture que suit la caméra de CSP (sim.focusedCar), pour les overlays
+-- Voiture regardée (Beta 2.0.0, comme SuperHUD) : la voiture que suit la caméra de CSP (sim.focusedCar), pour les overlays
 -- Ingénieur et Stratégie seulement. La radio, le stratège, le carburant de la radio et les clés publiées pour les autres
 -- apps (pitplan, strategy) restent toujours sur la voiture du joueur. Module pur.
 -- Par voiture : trois derniers tours (moyenne), tour de sortie des stands (tours du relais). Voiture suivie : sa

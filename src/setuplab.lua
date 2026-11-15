@@ -1,4 +1,4 @@
--- SetupLab (1.3.9, facultatif : SpotterEnginer ne dépend que d'AdvancedIA) : clé ac.store « SetupLab.state » écrite par
+-- SetupLab (Beta 2.0.0, facultatif : SpotterEnginer ne dépend que d'AdvancedIA) : clé ac.store « SetupLab.state » écrite par
 -- SetupLab (contrat v1 avec sa session, 12/11/2026), relue ici. Module pur.
 --   v=1;kind=quali|race|none;ver=<vN|eN|->;fuel=<L>;fpl=<L>;stint=<n>;compound=<nom|->;phot=<AVG>,<AVD>,<ARG>,<ARD>;
 --   tune=idle|running|ready;readyN=<n>;stamp=<s>;pitc=<nom|->;stops=<n>;tlap=<n>;tdl=<s|->;tv=better|worse|same|wait|-;

@@ -1,4 +1,4 @@
--- Voiture regardée (1.3.9, comme SuperHUD) : historique des tours, relais, consommation mesurée de la voiture suivie.
+-- Voiture regardée (Beta 2.0.0, comme SuperHUD) : historique des tours, relais, consommation mesurée de la voiture suivie.
 local Focus=require('src/focus')
 local Helpers=require('tests/helpers')
 local check=Helpers.check
@@ -71,6 +71,19 @@ function T.accent_bar_off_by_default()
  check(Config.loadDesktops({['1']={strategyAccent=true}},4)[1].strategyAccent==true,'chosen per desktop: kept')
 end
 -- Taille des overlays comme les blocs de SuperHUD : de 0,35 à 4 fois ; « Suivre la caméra » propre au bureau.
+-- Marge de carburant commune aux apps (comme SuperHUD et SetupLab) : un tour de réserve plus 2 L.
+function T.fuel_margin_shared_with_superhud()
+ local Config=require('src/config'); local Engineer=require('src/engineer')
+ local d=Config.defaults()
+ check(d.fuelMargin==2 and d.fuelReserve==1,'1 reserve lap + 2 L by default')
+ check(Config.load({schema=5,fuelMargin=1.0}).fuelMargin==2,'old default 1 L migrated to 2 L')
+ check(Config.load({schema=5,fuelMargin=3.0}).fuelMargin==3,'a margin set by hand is kept')
+ check(Config.load({schema=5,fuelMargin=3.0}).fuelReserve==0,'no reserve lap added on top of a margin set by hand')
+ local e=Engineer.new(); e.strategist.data.fuelPerLap=2.5
+ local F={cars={[0]={valid=true,laps=3}},player=0,fuelRate=1,me={fuel=20,fuelPerLapAC=2.5}}
+ local st=Engineer.fuelStatus(e,F,{fuelMargin=2,fuelReserve=1})
+ check(st and math.abs(st.have-((20-2)/2.5-1))<1e-9,'laps of fuel kept: minus 2 L, minus 1 lap: '..tostring(st and st.have))
+end
 -- Radio de la voiture regardée : active par défaut ; un réglage resté coupé (ancien défaut) passe à actif.
 function T.spectator_radio_on_by_default()
  local Config=require('src/config')

@@ -40,7 +40,7 @@ The required AdvancedIA version is also written in SpotterEnginer's `manifest.in
 
 - The format is described in `src/bridge_layout.lua`, **identical character for character** in both apps (checked by `python tests/run.py`).
 - The `hello` structure (key `ACAdvancedIA.Bridge.Hello`) never changes shape: it says that AdvancedIA runs and which bridge version it publishes, even to a reader that does not know that version.
-- A new format changes both the `data` key (`ACAdvancedIA.Bridge.Data.v1` today) and `version`. SpotterEnginer then shows **Different bridge version** instead of reading wrong data, and stays silent until both apps are updated.
+- A new format changes both the `data` key (`ACAdvancedIA.Bridge.Data.v2` since Beta 2.0.0) and `version`. SpotterEnginer then shows **Different bridge version** instead of reading wrong data, and stays silent until both apps are updated.
 - The keys kept their `ACAdvancedIA` prefix when AdvancedIA was renamed (Beta 1.49), on purpose: the protocol is frozen.
 - **The in-app updater enforces it.** Before installing a new SpotterEnginer, and before rolling back, it compares the package's bridge version with the installed AdvancedIA's. It refuses when AdvancedIA is older (*Update AdvancedIA first*), when AdvancedIA publishes a newer bridge than the package knows, and when AdvancedIA is not installed. See [README.md](README.md#compatibility-guard).
 
@@ -57,9 +57,10 @@ SpotterEnginer only reads the bridge (`src/link.lua`); it never writes into Adva
 - **DRS and headlight flash**: DRS beep, player DRS, flash understood.
 - **Pit stops**: pit state, window opening and closing, stops done and due, maximum stint, minimum pit time, stop waived.
 - **Race**: race progress, laps left, wet track, finish, positions.
-- **AI sanctions** (overlay announcement) and, **for each car** (up to 61): pit and track state, incidents, sanctions and pending penalties, planned stops and their cause, failures, stops made, mistakes.
+- **AI sanctions** (overlay announcement) and, **for each car** (up to 61): pit and track state, incidents, sanctions and pending penalties, planned stops and their cause, failures, stops made, mistakes; since v2, `retired` and `lastReason` (codes in `L.reasons`, 99 = other).
+- **Session sanction rules** (v2): `trackWarnings` and `serveLaps`.
 
-The details of the announcements read by SpotterEnginer are in [docs/PONT_ACADVANCEDIA.md](docs/PONT_ACADVANCEDIA.md). Known limit of format v1: `penaltyKind` is `string(4)`, so "slow" arrives as "slo"; SpotterEnginer treats any value other than "dq" as a throttle cut.
+The details of the announcements read by SpotterEnginer are in [docs/PONT_ACADVANCEDIA.md](docs/PONT_ACADVANCEDIA.md). Known limit of formats v1 and v2: `penaltyKind` is `string(4)`, so "slow" arrives as "slo"; SpotterEnginer treats any value other than "dq" as a throttle cut.
 
 ## SetupLab (optional)
 

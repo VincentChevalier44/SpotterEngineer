@@ -17,11 +17,11 @@ M.schema={
  {'trackLimits',true},{'drsVoice',false},{'deltaVoice',true},{'penaltiesVoice',true},{'flashVoice',true},{'aaiMessages',true},{'sec_penalties',true},{'sec_traffic',true},
  -- Ingénieur
  {'engineerOn',true},{'engineerVolume',1.0,0,2,0.05},{'pace',true},{'paceEvery',3,1,10,1},{'pushHold',true},{'positionCalls',true},{'positionLive',true},{'debrief',true},
- {'fuel',true},{'fuelMargin',1.0,0,5,0.25},{'fuelK',0.03,0.005,0.08,0.005},
+ {'fuel',true},{'fuelMargin',2.0,0,5,0.25},{'fuelReserve',1,0,3,1},{'fuelK',0.03,0.005,0.08,0.005},
  {'tyres',true},{'tyreCold',15,5,40,1},{'tyreHot',12,4,40,1},{'brakes',true},{'brakeHot',850,400,1200,10},
  {'biasDiff',180,60,400,10},{'damage',true},{'weather',true},{'wind',true},{'windMin',15,5,50,1},{'driving',true},
  {'drivingLoss',0.15,0.05,0.6,0.01},
- -- SetupLab (1.3.9, app facultative) : verdicts des tours d'essai et nouvelle version prête, hors course.
+ -- SetupLab (Beta 2.0.0, app facultative) : verdicts des tours d'essai et nouvelle version prête, hors course.
  {'setupLab',true},{'setupTrials',true},{'setupReady',true},
  -- Stratégie
  {'strategyOn',true},{'tolerance',2.0,0.5,6,0.1},{'gripFloor',94,85,99,0.5},{'tempSens',0.02,0,0.06,0.005},
@@ -73,7 +73,7 @@ M.sections={
    {id='superhudRadar',master='shRadar',keys={},gate=true,requires='superhud'},
    {id='trafficCalls',master='sec_traffic',keys={'backmarkers','fasterBehind','hazards','anticipation','flashVoice'},gate=true},
    {id='emergencies',master='emergencies',keys={},gate=true},
-   -- Radio de la voiture regardée (1.3.9, src/spectator.lua) : coupée par défaut.
+   -- Radio de la voiture regardée (src/spectator.lua) : active par défaut (migration 5).
    {id='spectator',master='spectatorRadio',keys={},gate=true},
    {id='pitExit',master='pitExit',keys={},gate=true},
    {id='gaps',master='gaps',keys={'gapEvents','gapEvery','gapDecimals','closingAlert'},gate=true}}}},
@@ -81,7 +81,7 @@ M.sections={
   {'raceGroup',{
    {id='pace',master='pace',keys={'paceEvery','pushHold','positionCalls','positionLive'},gate=true},
    {id='debrief',master='debrief',keys={},gate=true},
-   {id='fuel',master='fuel',keys={'fuelMargin','fuelK'},gate=true},
+   {id='fuel',master='fuel',keys={'fuelMargin','fuelReserve','fuelK'},gate=true},
    {id='driving',master='driving',keys={'drivingLoss'},gate=true}}},
   {'carGroup',{
    {id='tyres',master='tyres',keys={'tyreCold','tyreHot'},gate=true},
@@ -185,6 +185,9 @@ function M.valid(key,value)
  if s[5] and s[5]>0 then v=tonumber(string.format('%.10g',s[3]+math.floor((v-s[3])/s[5]+0.5)*s[5])) end
  return math.max(s[3],math.min(s[4],v))
 end
+-- Marge de carburant en litres, une seule règle pour la radio, les overlays et le modèle de stratégie : fuelReserve
+-- tour(s) de consommation fpl plus fuelMargin litres (comme SuperHUD et SetupLab : 1 tour + 2 L par défaut).
+function M.fuelMarginLitres(cfg,fpl) return (cfg.fuelMargin or 2)+(cfg.fuelReserve or 0)*(fpl or 0) end
 -- Bureau jamais configuré : réglages par défaut, aucun overlay affiché (comme un bureau vide de SuperHUD).
 function M.emptyDesktop()
  local t={}
@@ -230,11 +233,13 @@ end
 --   2 : DRS à la voix coupé par défaut (AdvancedIA a déjà son bip et son panneau).
 --   3 : volume général 170 % et son de la voiture pendant la radio 85 % (réglages du pilote, 05/11/2026) ; seules les
 --       valeurs restées aux anciens défauts (100 %, 40 %) changent : un choix fait à la main est gardé.
---   4 : barre d'accent des overlays masquée par défaut (1.3.9, comme SuperHUD ; demande du pilote, 14/11/2026) : une
+--   4 : barre d'accent des overlays masquée par défaut (Beta 2.0.0, comme SuperHUD ; demande du pilote, 14/11/2026) : une
 --       barre restée à l'ancien défaut (affichée) est masquée, dans les réglages et dans chaque bureau.
 --   5 : radio de la voiture regardée active par défaut (demande du pilote, 14/11/2026 : « que j'ai le spotter et
 --       l'ingénieur de l'IA sélectionnée ») ; un réglage resté à l'ancien défaut (coupé) passe à actif.
-M.version=5
+--   6 : marge de carburant commune aux apps (décision du pilote, 14/11/2026 : comme SuperHUD et SetupLab) : un tour de
+--       réserve (fuelReserve) plus 2 L ; une marge restée à l'ancien défaut (1 L) passe à 2 L.
+M.version=6
 function M.load(raw)
  local t=M.defaults()
  if type(raw)=='table' then
@@ -247,6 +252,9 @@ function M.load(raw)
   end
   if from<4 then for _,o in ipairs(M.overlays) do t[o..'Accent']=false end end
   if from<5 then t.spectatorRadio=true end
+  -- Marge restée à l'ancien défaut : 2 L et un tour de réserve ; marge réglée à la main : gardée telle quelle, sans
+  -- tour de réserve ajouté par-dessus (relecture du 15/11/2026).
+  if from<6 then if math.abs(t.fuelMargin-1.0)<1e-6 then t.fuelMargin=2.0 else t.fuelReserve=0 end end
  end
  t.schema=M.version
  return t

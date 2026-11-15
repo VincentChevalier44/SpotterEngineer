@@ -52,39 +52,45 @@ end
 -- configuration : ac.getAppWindows puis ac.accessAppWindow, recherche au plus une fois par seconde ; nil sans ces API.
 M.gameTitle='SpotterEnginer - Config'
 local gameWin={w=nil,next=-1e9}
+-- Recherche protégée, fonction du module (aucune fermeture créée à chaque image ; relecture du 15/11/2026).
+local function findGameWindow()
+ local w=gameWin.w
+ if w and w:valid() then return w end
+ local now=os.clock()
+ if now<gameWin.next then return nil end
+ gameWin.next=now+1
+ for _,item in ipairs(ac.getAppWindows()) do
+  if item.title==M.gameTitle or item.name==M.gameTitle then
+   w=ac.accessAppWindow(item.name)
+   if w and w:valid() then gameWin.w=w; return w end
+  end
+ end
+ return nil
+end
 local function gameWindow()
  if not (callable(ac.getAppWindows) and callable(ac.accessAppWindow)) then return nil end
- local ok,w=pcall(function()
-  local w=gameWin.w
-  if w and w:valid() then return w end
-  local now=os.clock()
-  if now<gameWin.next then return nil end
-  gameWin.next=now+1
-  for _,item in ipairs(ac.getAppWindows()) do
-   if item.title==M.gameTitle or item.name==M.gameTitle then
-    w=ac.accessAppWindow(item.name)
-    if w and w:valid() then gameWin.w=w; return w end
-   end
-  end
-  return nil
- end)
+ local ok,w=pcall(findGameWindow)
  return ok and w or nil
 end
 -- Fenêtre retrouvée gardée : oubliée (tests, rechargement).
 function M.forgetGameWindow() gameWin.w=nil; gameWin.next=-1e9 end
 local function finite(v) return type(v)=='number' and v==v and v>-1e6 and v<1e6 end
 -- État de la fenêtre : {open}, et sa place et sa taille avec geometry ; nil si elle est introuvable.
+-- État renvoyé réutilisé (relevé à chaque image) : à lire tout de suite.
+local winState={}
+local function readWindow(w,geometry)
+ local st=winState
+ st.open=w:visible()==true; st.x=nil; st.y=nil; st.w=nil; st.h=nil
+ if geometry then
+  local p,s=w:position(),w:size()
+  if finite(p.x) and finite(p.y) and finite(s.x) and finite(s.y) and s.x>0 and s.y>0 then st.x,st.y,st.w,st.h=p.x,p.y,s.x,s.y end
+ end
+ return st
+end
 function M.windowState(geometry)
  local w=gameWindow()
  if not w then return nil end
- local ok,st=pcall(function()
-  local st={open=w:visible()==true}
-  if geometry then
-   local p,s=w:position(),w:size()
-   if finite(p.x) and finite(p.y) and finite(s.x) and finite(s.y) and s.x>0 and s.y>0 then st.x,st.y,st.w,st.h=p.x,p.y,s.x,s.y end
-  end
-  return st
- end)
+ local ok,st=pcall(readWindow,w,geometry)
  return ok and st or nil
 end
 -- Remet la fenêtre dans l'état st (place et taille gardées dans l'écran, puis ouverte ou fermée).
@@ -158,21 +164,18 @@ function M.detect()
  end)
  return installed,hasBridge,release,folder
 end
--- Manifeste de SetupLab (1.3.9, app facultative : src/setuplab.lua, M.installed), ou nil.
-function M.superhudManifest()
- local ok,text=pcall(function()
-  local path=M.luaAppsDir()..'/SuperHUD/manifest.ini'
-  return io.fileExists(path) and io.load(path,'') or nil
- end)
- return ok and text or nil
+-- Manifeste de SetupLab (Beta 2.0.0, app facultative : src/setuplab.lua, M.installed), ou nil.
+-- Manifeste d'une app compagne facultative (apps/lua/<dossier>/manifest.ini), ou nil : SuperHUD, SetupLab.
+local function manifestText(folder)
+ local path=M.luaAppsDir()..'/'..folder..'/manifest.ini'
+ return io.fileExists(path) and io.load(path,'') or nil
 end
-function M.setupLabManifest()
- local ok,text=pcall(function()
-  local path=M.luaAppsDir()..'/SetupLab/manifest.ini'
-  return io.fileExists(path) and io.load(path,'') or nil
- end)
+function M.companionManifest(folder)
+ local ok,text=pcall(manifestText,folder)
  return ok and type(text)=='string' and text or nil
 end
+function M.superhudManifest() return M.companionManifest('SuperHUD') end
+function M.setupLabManifest() return M.companionManifest('SetupLab') end
 -- Structures du pont : constructeur identique à Applier.bridgeOpen d'AdvancedIA (même format, mêmes clés).
 local function item(f)
  local S=ac.StructItem; local kind=f[2]
@@ -433,19 +436,35 @@ end
 function M.onRelease(fn) if callable(ac.onRelease) then pcall(ac.onRelease,fn) end end
 -- Réglages persistants (une chaîne JSON).
 local storage=nil
+-- Réglages illisibles (texte enregistré qui ne se lit plus, stockage indisponible) : M.settingsFailed, et l'app
+-- n'enregistre rien avant un vrai changement du pilote (relecture du 15/11/2026 : une lecture ratée écrasait tout par
+-- les valeurs par défaut une seconde plus tard). Premier lancement (texte vide) : pas un échec.
+M.settingsFailed=false
 function M.loadSettings()
+ M.settingsFailed=false
  local ok,s=pcall(ac.storage,{settings=''},'spe:')
- if ok and s then storage=s; local okp,data=pcall(JSON.parse,s.settings); if okp and type(data)=='table' then return data end end
+ if not ok or not s then M.settingsFailed=true; return {} end
+ storage=s
+ local text=s.settings
+ if type(text)~='string' or text=='' then return {} end
+ local okp,data=pcall(JSON.parse,text)
+ if okp and type(data)=='table' then return data end
+ M.settingsFailed=true
  return {}
 end
-function M.saveSettings(t) if storage then pcall(function() storage.settings=JSON.stringify(t) end) end end
+-- Enregistrement : true, ou false et l'erreur.
+function M.saveSettings(t)
+ if not storage then return false,'stockage indisponible' end
+ local ok,err=pcall(function() storage.settings=JSON.stringify(t) end)
+ return ok,not ok and tostring(err) or nil
+end
 -- Simulation et voitures, dans F (réutilisée).
 local names={}
 local dims={}
 local wetTypes={[0]=true,true,true,true,true,true,true,true,true,true,true,true,true,true,true}
 function M.newFrame()
  local F={cars={},me={tyres={{},{},{},{}},brakes={0,0,0,0},damage={0,0,0,0,0},susp={0,0,0,0},hit=-1},count=0,player=-1,valid=false,clock=0,
-  -- Voiture suivie par la caméra (1.3.9, overlays seulement : src/focus.lua) : indice (-1 : aucune autre) et données.
+  -- Voiture suivie par la caméra (Beta 2.0.0, overlays seulement : src/focus.lua) : indice (-1 : aucune autre) et données.
   focus=-1,view={ok=false,index=-1,fuel=0,maxFuel=100,compound=0,tyres={{core=0},{core=0},{core=0},{core=0}},brakes={0,0,0,0},damage={0,0,0,0,0}}}
  for i=0,Layout.maxCars-1 do F.cars[i]={index=i,valid=false,name='',x=0,z=0,lookX=0,lookZ=1,kmh=0,spline=0,laps=0} end
  return F
@@ -465,6 +484,9 @@ local function readWheels(me,car)
   local disc=num(w.discTemperature); me.brakes[k+1]=disc>0 and disc or num(w.brakeTemperature)
  end
 end
+-- Lectures protégées sans fermeture créée à chaque image (relecture du 15/11/2026).
+local function yawOf(car) return car.localAngularVelocity.y end
+local function forwardOf(car) return car.localVelocity.z end
 function M.read(F,dt)
  local okSim,sim=pcall(ac.getSim)
  if not okSim or not sim then F.valid=false; return false end
@@ -551,9 +573,9 @@ function M.read(F,dt)
   if not pcall(readSuspension,me,car) then for k=1,4 do me.susp[k]=0 end end
   me.hit=num(car.collidedWith,-1)
   -- Vitesse de lacet (rad/s, 1.3.1 : tête-à-queue du joueur, src/emergency.lua).
-  local okY,yaw=pcall(function() return car.localAngularVelocity.y end); me.yaw=okY and num(yaw) or 0
+  local okY,yaw=pcall(yawOf,car); me.yaw=okY and num(yaw) or 0
   -- Vitesse le long de la voiture (m/s, négative : elle recule ; 1.3.3 : marche arrière, jamais « à contresens »).
-  local okZ,vz=pcall(function() return car.localVelocity.z end); me.vz=okZ and num(vz) or 0
+  local okZ,vz=pcall(forwardOf,car); me.vz=okZ and num(vz) or 0
   pcall(readWheels,me,car)
  end
  return true

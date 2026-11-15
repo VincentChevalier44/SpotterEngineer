@@ -71,7 +71,7 @@ function M.new()
  return {prev=nil,spare=nil,deltaSign=0,prox=Proximity.new(),gapLap=-1,lastGaps={},backmarkers={},faster={},closing={},fastPending={},
   mistakes={},rivalState={},rivalNow={},exitSpline=nil,exitSamples=0,exitAlt=nil,exitAltN=0,inLane={},cuts=0,lapValid=true,
   stint=false,leftBox=false,autoFlip=false,sideAgree=0,sideDisagree=0,sideAtL=-1e9,sideAtR=-1e9,wasL=false,wasR=false,neutralEndAt=-1e9,greenPending=false,lastLapSaid=false,deltaQueuedAt=nil,proxCfg=nil,proxMe=nil,
-  zoneAt=-1e9,zoneGreenAt=-1e9,deltaAbove=nil,penaltyAt=-1e9,blackAt=-1e9,compound=false,wasLane=false,laneCompound=false,planPending=false,planSaid=false,finishSaid=false,finishAt=false,finishStale=false,
+  zoneAt=-1e9,zoneGreenAt=-1e9,deltaAbove=nil,penaltyAt=-1e9,blackAt=-1e9,compound=false,wasLane=false,laneCompound=false,planPending=false,planSaid=false,finishSaid=false,finishChecked=false,finishAt=false,finishStale=false,
   haz=Hazards.new(),incoming={},incomingSince={},incomingSeen={},incomingAt=-1e9,sideCarL=-1,sideCarR=-1,chaseOn=false,clearBehindAt=-1e9,
   liveAt=-1e9,inAhead=false,inBehind=false,inAheadCar=-1,inBehindCar=-1,slowAt=nil}
 end
@@ -109,7 +109,6 @@ local function plannedLap(ctx)
  if plan and plan.ok and plan.optimal and t.ready then return plan.optimal,t end
  return nil
 end
-M.plannedLap=plannedLap
 -- Voiture qui arrive derrière : jugée sur l'écart en temps au même endroit de la piste (Timing.trackGap), que les
 -- freinages et les virages ne font pas varier, et non sur les mètres ou les km/h (une voiture qui freine après le
 -- joueur « allait plus vite » à chaque virage sans jamais le rattraper : annonces sans personne derrière, constaté le
@@ -312,7 +311,7 @@ local function race(s,ctx)
   end
   if p.safetyPhase=='in' and cur.safetyPhase=='out' and cur.neutral then Voice.cancel(ctx.voice,AFTER_SCIN); say(ctx,'scOut',1,{'sc'},{ttl=8}) end
   if cur.ending and not p.ending and cur.neutralMode=='vsc' then say(ctx,'vscEnding',2,{'vscEnding'},{ttl=5}) end
-  -- 1.3.9 (demande du pilote) : décompte « 3, 2, 1 » des dernières secondes de la VSC (fin annoncée par AdvancedIA,
+  -- Beta 2.0.0 (demande du pilote) : décompte « 3, 2, 1 » des dernières secondes de la VSC (fin annoncée par AdvancedIA,
   -- endingLeft : secondes restantes ; la VSC finit à zéro), puis « Go, go, go ! » à la relance à la place du vert
   -- complet. Chaque chiffre est dit au passage de sa seconde, abandonné s'il ne part pas aussitôt (jamais en retard).
   if cfg.vscCountdown and cur.ending and p.ending and cur.neutralMode=='vsc' then
@@ -565,7 +564,6 @@ end
 local function sideIdle(s)
  if s.prox.left or s.prox.right or s.prox.candL or s.prox.candR then s.prox=Proximity.new(); s.wasL=false; s.wasR=false end
 end
-M.sideIdle=sideIdle
 -- Voiture qui arrive à côté depuis l'arrière (1.3.0, réglage Anticipation) : derrière le joueur à moins de INCOMING.behind
 -- m, décalée d'une voie, plus rapide de INCOMING.closing km/h au moins, ce côté encore libre, et à côté dans INCOMING.lead s
 -- au moins (sinon « voiture à gauche » suit aussitôt : une seule annonce utile) : « il arrive à gauche ».
@@ -1020,7 +1018,8 @@ end
 -- Pénalités des adversaires directs (deux places devant et derrière) : sanctions décidées par AdvancedIA.
 local function rivals(s,ctx)
  local F=ctx.F; local me=F.cars[F.player]
- if not ctx.cfg.rivalPenalties or not F.isRace or not me or not me.valid then return end
+ -- Position du joueur inconnue (0) : pas de voisins à juger (relecture du 15/11/2026).
+ if not ctx.cfg.rivalPenalties or not F.isRace or not me or not me.valid or (tonumber(me.position) or 0)<=0 then return end
  for i=0,F.count-1 do
   local lc=Link.car(ctx.link,i)
   if lc and i~=F.player then
@@ -1065,6 +1064,8 @@ local FINISH_WAIT=1
 function M.finish(s,ctx)
  local F=ctx.F; local cfg=ctx.cfg; local d=ctx.link.d; local me=F.cars[F.player]
  if s.finishSaid or not F.isRace or not cfg.raceControl or not me or not me.valid or (tonumber(me.laps) or 0)<1 then return end
+ -- Rechargement de l'app (ou redémarrage après une mise à jour) déjà après la ligne : le damier a été dit avant.
+ if not s.finishChecked then s.finishChecked=true; if ctx.resumed and me.finished then s.finishSaid=true; return end end
  if not me.finished then
   if d and d.finished and not F.finishedSession then s.finishStale=true end
   s.finishAt=false; return
@@ -1080,7 +1081,7 @@ function M.step(s,ctx)
  race(s,ctx)
  M.finish(s,ctx)
  if not ctx.cfg.spotterOn then return end
- -- 1.3.9 : alertes sonores du radar de SuperHUD actives (clé SuperHUD.state vivante) : le côte à côte lui est laissé.
+ -- Beta 2.0.0 : alertes sonores du radar de SuperHUD actives (clé SuperHUD.state vivante) : le côte à côte lui est laissé.
  if ctx.cfg.sideBySide and not (ctx.cfg.shRadar and ctx.superhudRadar) then side(s,ctx) else sideIdle(s) end
  if ctx.cfg.gaps then gaps(s,ctx) end
  live(s,ctx)

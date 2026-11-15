@@ -117,7 +117,8 @@ local function linkPanel(app,x,y,w)
  local bar=kind=='g' and c.ok or kind=='r' and c.danger or c.warn
  W.rect(x,y,4,96,bar)
  W.titleFit(text,x+16,y+10,w-32,18,12,c.text)
- W.paragraph(L.t.linkWhy[link.state] or (L.t.reason[link.reason] or link.reason),x+16,y+36,w-32,12,c.muted)
+ local why=L.t.linkWhy[link.state] or L.t.reason[link.reason] or (link.reason~='' and link.reason) or L.t.linkWhy.other
+ W.paragraph(why,x+16,y+36,w-32,12,c.muted)
  local rel=link.remoteRelease~='' and link.remoteRelease or link.release
  W.text(rel~='' and string.format(L.t.home.release,rel,link.remoteVersion>0 and link.remoteVersion or Layout.version) or L.t.home.noRelease,x+16,y+74,11,c.label,'mono')
  return 96
@@ -175,7 +176,8 @@ local function updateBlock(app,x,y,w)
  if not port.ready then return y+W.message(U2.unavailable,x,y,w,'mut')+8 end
  local Update=require('src/update')
  local view=Update.view(u,app.updateStopped)
- if view=='uptodate' and not app.updateClock then app.updateClock=os.date('%H:%M') end
+ -- Heure de la dernière vérification, refaite à chaque nouvelle vérification (relecture du 15/11/2026).
+ if view=='uptodate' and (not app.updateClock or app.updateClockSerial~=u.serial) then app.updateClock=os.date('%H:%M'); app.updateClockSerial=u.serial end
  local kind=UPDATE_KINDS[view] or (view:sub(1,3)=='err' and 'er') or 'mut'
  y=y+W.message(updateText(app,u,view),x,y,w,kind)+6
  local r=u.release
@@ -202,7 +204,6 @@ local function updateBlock(app,x,y,w)
  y=y+row(app,'updateCheck',x,y,w)
  return y+W.message(U2.kept,x,y+4,w,'mut')+10
 end
-local HOME_ROWS={'volume','spotterVolume','engineerVolume','duck','duckLevel'}
 local function home(app,x,y,w)
  y=y+linkPanel(app,x,y,w)+14
  local tw=(w-30)/4
@@ -221,8 +222,7 @@ local function home(app,x,y,w)
   y=y+46
  end
  W.heading(L.t.home.voices,x,y,w,string.format(L.t.home.voicesOf,app.voicePresent or 0,app.voiceTotal or 0)); y=y+30
- -- Volumes de la radio, réglables ici avec l'essai de la voix juste dessous.
- for _,key in ipairs(HOME_ROWS) do y=y+row(app,key,x,y,w) end
+ -- Volumes et son de la voiture pendant la radio : seulement dans l'onglet Radio (demande du pilote, 15/11/2026).
  y=missingClips(app,x,y+8,w)
  y=y+W.message(L.t.home.silent,x,y,w,'mut')+10
  voiceTest(app,x,y,'')
@@ -485,7 +485,10 @@ local function pane(app,v,tab,sec,x,top,w,bottom)
  local limit=x+w-14-(rw>0 and rw+10 or 0)
  local state=sec.master and (on and L.t.ui.active or L.t.ui.inactive) or L.t.ui.always
  local stateKind=sec.master and (on and 'g' or 'a') or 'n'
- local scope=tab=='overlays' and sec.id~='hotkeys' and sec.id~='desktops' and string.format(L.t.ovui.desktopN,app.desktop or 1) or nil
+ -- Étiquette « BUREAU n » : seulement sur les sections propres au bureau (bouton d'édition et évitement de SuperHUD :
+ -- communs à tous les bureaux ; relecture du 15/11/2026).
+ local scope=tab=='overlays' and sec.id~='hotkeys' and sec.id~='desktops' and sec.id~='editor' and sec.id~='superhudAvoid'
+  and string.format(L.t.ovui.desktopN,app.desktop or 1) or nil
  local chipsW=W.chipWidth(state)+10+(scope and W.chipWidth(scope)+6 or 0)+(sec.master and 40 or 0)
  local upper=W.upper(title)
  local room=math.max(40,limit-ix-10-chipsW)
@@ -534,7 +537,8 @@ local function updateHeader(app,v,x,limit)
  local Update=require('src/update')
  local view=u and port and port.ready and Update.view(u,app.updateStopped) or nil
  local offered=view and Update.offered(u) and u.release
- local version='v'..(app.version or '?')
+ -- « v1.3.8 », mais « Beta 2.0.0 » tel quel (jamais « vBeta 2.0.0 »).
+ local version=tostring(app.version or '?'); if version:match('^%d') then version='v'..version end
  local vw=W.width(version,11,'mono')+10
  W.frameRect(x,15,vw,18,offered and c.cyan or c.rule); W.text(version,x+5,17,11,offered and c.cyanText or c.label,'mono')
  x=x+vw+8

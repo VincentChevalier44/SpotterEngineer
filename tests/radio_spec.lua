@@ -53,7 +53,10 @@ function T.variants_follow_tone_and_never_repeat()
  local g=Catalog.groups.posGained
  check(g and #g==4,'posGained group: base and 3 variants')
  local a=Say.pick(s,'posGained','motivating'); local b=Say.pick(s,'posGained','motivating')
- check(Catalog.clips[a].tone=='motivating' and Catalog.clips[b].tone=='motivating' and a~=b,'motivating variants, never twice: '..a..' '..b)
+ local ok={motivating=true,neutral=true}
+ check(ok[Catalog.clips[a].tone] and ok[Catalog.clips[b].tone] and a~=b,'motivating or neutral variants (base kept), never twice: '..a..' '..b)
+ -- Ton demandé : jamais une variante d'un autre ton (calme, frustrée).
+ for _=1,12 do local x=Say.pick(s,'posGained','motivating'); check(ok[Catalog.clips[x].tone],'tone kept: '..x) end
  local c=Say.pick(s,'posGained'); check(Catalog.clips[c].tone=='neutral','no tone: neutral one ('..c..')')
  check(Say.pick(s,'push','frustrated')~=nil,'unknown tone in the group: a neutral one')
  check(Say.pick(s,'raceDone','urgent')=='raceDone','clip without variants: itself')

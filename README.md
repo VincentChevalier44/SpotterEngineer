@@ -104,7 +104,7 @@ The repository download also contains the test bench, the tools and the document
 3. **Open SpotterEnginer** from the apps bar to reach its settings. The window is also available in the setup menu.
 4. **Language.** The voices and the interface are in French on a first installation. Change **Language** (tab **Radio & voice**, section **Voice and language**, or in the header) to **EN**.
 5. **The three overlays** (Spotter, Engineer, Strategy) are drawn in game by the app, like those of SuperHUD and AdvancedIA. Only the settings window appears in the apps bar. Set them up in the **Overlays** tab (see [Overlays](#overlays)).
-6. **Test the voice** on the **Home** tab (buttons **Spotter** and **Engineer**), next to the volumes.
+6. **Test the voice** on the **Home** tab (buttons **Spotter** and **Engineer**); the volumes are in the **Radio & voice** tab.
 
 ## Updating
 
@@ -243,8 +243,8 @@ Until AdvancedIA is connected **and** running, SpotterEnginer says nothing. It o
 
 - **The bridge is built into AdvancedIA since Beta 1.46** of AC Advanced AI (its former name), published on GitHub on 4 November 2026 (release v1.46) and offered by its built-in update from 1.45.
 - **The app is called AdvancedIA from Beta 1.49** (GitHub repository VincentChevalier44/AdvancedIA). It installs into `apps/lua/AdvancedIA/` instead of `apps/lua/ACAdvancedIA/`. SpotterEnginer looks for the new folder first, then the old one for installations not yet migrated; only the `manifest.ini` counts (an empty old folder is ignored).
-- **The bridge does not change with the rename**: same format, same `ac.connect` keys (`ACAdvancedIA.Bridge.Hello`, `ACAdvancedIA.Bridge.Data.v1`).
-- **AdvancedIA only opens the bridge when `apps/lua/SpotterEnginer/manifest.ini` exists.** Its log (`Documents/Assetto Corsa/logs/AdvancedIA.log`, `ACAdvancedIA.log` before 1.49) confirms it with the line `pont des apps compagnes: ouvert (version 1)` (*companion app bridge: open*).
+- **The bridge does not change with the rename**: same format, same `ac.connect` keys (`ACAdvancedIA.Bridge.Hello`, `ACAdvancedIA.Bridge.Data.v2` since Beta 2.0.0).
+- **AdvancedIA only opens the bridge when `apps/lua/SpotterEnginer/manifest.ini` exists.** Its log (`Documents/Assetto Corsa/logs/AdvancedIA.log`, `ACAdvancedIA.log` before 1.49) confirms it with the line `pont des apps compagnes: ouvert (version 2)` (*companion app bridge: open*).
 - With an AdvancedIA version without the bridge, SpotterEnginer shows **AdvancedIA without bridge** and stays silent.
 - Since AdvancedIA does nothing online, SpotterEnginer is for offline play only.
 
@@ -275,7 +275,7 @@ The window is organised like AdvancedIA's:
 
 The sections that are always on have nothing to switch off: they set a calculation (the plan is always computed, the Strategy overlay needs it), volumes or the language, or they show a state. Switching **Strategy calls** off silences the "box", the undercut, the overcut and the car ahead pitting, but the Strategy overlay keeps the plan and the duels.
 
-- **Home**: the link, the **Spotter**, **Engineer**, **Strategy** and **Overlays** tiles (each one switches its role on or off), the voice clips found, the volumes with the **Test the voice** buttons.
+- **Home**: the link, the **Spotter**, **Engineer**, **Strategy** and **Overlays** tiles (each one switches its role on or off), the voice clips found and the **Test the voice** buttons.
 - **Diagnostics**: the **UPDATE** block, then state, bridge, errors, strategy model, desktop, settings, and **Reset all settings (overlays: this desktop)**, confirmed by a second click; the overlays of the other desktops are kept.
 
 ### Overlays
@@ -504,7 +504,7 @@ The clips are in `vox/FR` and `vox/EN`: 251 calls (23 of them alternative wordin
 - **Punctuation**: when a sentence starts with a capital letter after a number or another sentence, a full stop separates them in writing (*"Gap ahead: 1.2 seconds. You're closing."*).
 - **Radio effect**: every voice goes through a radio band (300 to 3,400 Hz, present mids, light saturation), at a "light" strength chosen by ear to stay clear at full speed. The level is measured after the effect.
 - **Opening tone**: a short digital tone (two notes, 85 ms, then 45 ms of silence) comes before each transmission, so the driver is not startled. From 1.3.1, never before a priority 1 call (side by side, red flag, stopped car ahead: they start at once), nor before a transmission that follows the previous one by less than 1 s (*"Car left… still there… clear"* in one go). It never separates the clips of one sentence. A call resumed after an interruption is a new transmission, so it gets its tone again. Setting **Radio tone** (tab **Radio & voice**); the same sound is used for messages without a voice clip. File: `sounds/radio.wav`, rebuilt by `tools/generer_voix.py --force`.
-- **Same voice as the original clips**: edge-tts, `fr-FR-HenriNeural` and `en-US-GuyNeural`, like the `generer_voix.py` script of the FIA voices. Clips 01 to 34 say exactly their original texts.
+- **Two voices**: edge-tts. The engineer speaks with `fr-FR-HenriNeural` and `en-US-GuyNeural`; the spotter, since Beta 2.0.0, with `fr-FR-DeniseNeural` and `en-US-JennyNeural`. Clips said only by the spotter are voiced by her in place; clips both roles say, and the numbers, durations and positions, have a female copy in `vox/<lang>/F/`. Clips 01 to 34 say exactly their original texts.
 - **Format**: MP3 VBR (LAME V9), 24 kHz mono, named `.wav` like the original clips. AC's audio engine (FMOD) recognises the format from the content, but this is to be confirmed in game.
   - The voice is kept up to 7 kHz: that is the band of "high definition" voice, while the source has only 1 % of its energy above 8 kHz.
   - Result: 40 % less space.
@@ -512,8 +512,8 @@ The clips are in `vox/FR` and `vox/EN`: 251 calls (23 of them alternative wordin
   - Internal pauses (edge-tts puts about 1 s after a full stop) are brought down to 0.25 s: *"Safety car deployed. Catch the pack…"* goes from 4.6 to 3.7 s. No clip has a pause longer than 0.35 s.
 - **Level**: edge-tts renders the voice too quietly (around −20 to −25 LUFS) and unevenly. Each clip is lightly compressed, radio style, and brought to the same level, about −13.5 LUFS. A limiter, then a peak check after encoding, prevent any clipping.
 - **Car sound during the radio**: the engine, transmission, tyres and wind of your car are lowered during each message (85 % by default, adjustable), then come back exactly to their level. It is a multiplier on the car itself, never saved by CSP: everything is normal at the next launch, whatever happens.
-- **Volumes**: master (170 % by default), spotter and engineer (100 %), from 0 to 200 %. They are set on the **Home** page, next to the **Test the voice** buttons, and in the **Radio & voice** tab. Above 100 % the sound may distort. If the voices stay covered, also lower the engine volume in AC's audio settings.
-- **Regenerating**: `python tools/generer_voix.py` makes the missing clips; `--force` redoes clips 35 and up, the numbers, durations, positions and the radio tone; `--tout` redoes everything, original clips 01 to 34 included. It needs a connection, since edge-tts uses Microsoft Edge's speech service.
+- **Volumes**: master (170 % by default), spotter and engineer (100 %), from 0 to 200 %. They are set in the **Radio & voice** tab. Above 100 % the sound may distort. If the voices stay covered, also lower the engine volume in AC's audio settings.
+- **Regenerating**: `python tools/generer_voix.py` makes the missing clips; `--force` redoes clips 35 and up, the numbers, durations, positions and the radio tone; `--tout` redoes everything, original clips 01 to 34 included; `--feminin` redoes only the spotter's female clips. It needs a connection, since edge-tts uses Microsoft Edge's speech service.
 - **Composed calls**: calls are chains of clips. Gaps are read in one go: *"Gap ahead:"* then "9.3 seconds" in a single clip (singular below 2 s in French, « 1,5 seconde »), said 10 % faster. The sentence goes from 2.8 s in five clips to 1.9 s in two. The full list and the texts are in `vox/VOICE_CLIPS.md`.
 - **Two original clips stay reserved, never said**: no. 12 (*"Black and white flag, track limits warning."*) and no. 20 (*"One more strike and you're disqualified"*, for track limits). Neither AC nor AdvancedIA gives the player's count of track-limit offences; saying them would claim a sanction that nothing proves. Cuts have their own clip (no. 93), and AdvancedIA's final warning its own (no. 125).
 - **Varied wording and tone** (new in 1.3.0, setting **Varied wording**, tab **Radio & voice**): the most frequent calls have two to four wordings (*"Nice job."*, *"Great move, well done!"*, *"Nice one, keep it going!"*…), never the same one twice in a row. Each clip has a tone (calm, urgent, motivating, disappointed) chosen by the situation: urgent for hazards and emergencies, motivating for a place gained or an attack, disappointed but supportive for a place lost or damage, calm for managing a gap. The tone is in the wording and in the delivery (edge-tts speed and pitch: urgent +14 % and +4 Hz, motivating +7 % and +3 Hz, calm −4 % and −2 Hz, disappointed −6 % and −4 Hz), with the same voice; edge-tts offers no emotional styles for these voices. The same instruction said with another wording still counts as a repeat (180 s).
@@ -553,8 +553,6 @@ Defaults as shipped; ranges in brackets.
 | Check for updates at launch | on | UPDATE block; on GitHub, once per launch |
 | Spotter on, Engineer on, Pit strategy | on | The role tiles |
 
-The **Home** tab also shows **Master volume**, **Spotter volume**, **Engineer volume**, **Lower the car during the radio** and **Car sound during the radio** (see the **Radio & voice** tab).
-
 #### Spotter tab
 
 Role switch **Spotter on** (traffic, position, race control). Group **Race control**:
@@ -575,6 +573,7 @@ Group **Traffic and position**:
 | Traffic (on) | Backmarkers ahead (on), Faster traffic behind (on), Hazards ahead (on), Anticipation (on), Flash understood (on) |
 | Emergencies (on) | — |
 | Pit exit (on) | — |
+| Radio of the watched car (on) | When you are not driving, the spotter and engineer of the car the camera follows (after 2 s on it); while you drive, only your own radio |
 | Gaps (on) | Live gaps (on), Gaps every … laps (2) [1–5], Gap decimals (1) [0–2], "Closing" threshold (s) (0.3) [0.1–1.5] |
 
 #### Engineer tab
@@ -585,7 +584,7 @@ Role switch **Engineer on** (pace, fuel, tyres, strategy). Groups **Race**, **Ca
 |---|---|
 | Pace and calls (on) | Pace every … laps (3) [1–10], Push / hold (on), Position and advice (on), Live position (on) |
 | End-of-race debrief (on) | — |
-| Fuel (on) | Fuel margin (L) (1.0) [0–5], Fuel effect (s/L) (0.03) [0.005–0.08] |
+| Fuel (on) | Reserve laps (1) [0–3], Fuel margin (L) (2.0) [0–5], Fuel effect (s/L) (0.03) [0.005–0.08] |
 | Driving advice (on) | Reported loss (s) (0.15) [0.05–0.6], per mini sector over 3 laps |
 | Tyres (on) | Cold tyres below optimum (°C) (15) [5–40], Overheating above (°C) (12) [4–40] |
 | Brakes (on) | Very hot brakes (°C) (850) [400–1200], Front/rear gap (°C) (180) [60–400] |

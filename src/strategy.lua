@@ -54,7 +54,7 @@ function M.parseLut(text)
 end
 -- Modèle par défaut (valeurs prudentes, remplacées par les mesures).
 function M.defaultModel()
- return {base=100,fuelPerLap=2.5,fuelK=0.03,tank=100,fuel=50,fuelMargin=1.0,
+ return {base=100,fuelPerLap=2.5,fuelK=0.03,tank=100,fuel=50,fuelMargin=2.0,
   wearF=nil,wearR=nil,kmF=0.25,kmR=0.25,km0F=0,km0R=0,gripK=0.6,degLinear=0.05,age0=0,
   warmup=1.5,pitLane=22,tyreChange=10,fuelRate=0.5,minPit=0,changeTyres=true,
   wearGrowth=0,gripFloor=94,trafficCost=1.5,trafficWindow=2.0,tolerance=2.0}

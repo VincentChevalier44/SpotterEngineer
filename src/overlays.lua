@@ -3,7 +3,7 @@
 -- affichée, verrouillée (clics traversants) ou déverrouillée (glisser pour déplacer, coin bas droit pour la taille,
 -- clic droit pour verrouiller), fond opaque / atténué (38 %) / transparent, opacité du fond et du contenu, bande
 -- décorative (couleur de l'état de course), en-tête. Thème Racing 26 aux couleurs de l'app (pervenche).
--- 1.3.9 (demande du pilote : « le même que SuperHUD ») : panneau au coin haut droit coupé, barre d'accent à gauche,
+-- Beta 2.0.0 (demande du pilote : « le même que SuperHUD ») : panneau au coin haut droit coupé, barre d'accent à gauche,
 -- petit titre et état à droite sur un filet ; poignée de taille à deux traits, taille de 0,35 à 4 fois, poignées en
 -- pixels d'écran ; Ingénieur et Stratégie de la voiture suivie par la caméra (src/focus.lua, réglage followCamera).
 local W=require('src/kit')
@@ -132,13 +132,14 @@ local function sideBar(c,y,on,x,label,left)
  local tw=W.width(label,12,'cond')
  W.text(label,x+35-tw/2,y+16,12,col,'cond')
 end
-local function gapRow(app,f,c,ov,y,label,i,ahead)
- local F=app.F
+-- ref : voiture de référence (le joueur, ou la voiture regardée quand sa radio parle).
+local function gapRow(app,f,c,ov,y,label,i,ahead,ref)
+ local F=app.F; ref=ref or F.player
  W.text(label,12,y+2,10,c.label,'label')
  if i and F.cars[i] and F.cars[i].valid then
   local car=F.cars[i]
   local g,laps
-  if ahead then g,laps=Timing.gap(app.timing,i,F.player,app.now) else g,laps=Timing.gap(app.timing,F.player,i,app.now) end
+  if ahead then g,laps=Timing.gap(app.timing,i,ref,app.now) else g,laps=Timing.gap(app.timing,ref,i,app.now) end
   W.text(text(ahead and 'gapAp' or 'gapBp','P%d',car.position),86,y,13,c.text,'mono')
   W.cell(car.name,124,y+1,f.w-124-80,12,c.body)
   local v=g and num(ahead and 'gapA' or 'gapB',g,1,L.mark()) or laps and laps>0 and text(ahead and 'gapAl' or 'gapBl','+%s %s',laps,ov.laps) or ov.none
@@ -159,15 +160,21 @@ end
 function M.draw.spotter(app,f,o)
  local ov=L.t.ov; local c=W.colors()
  if idle(app) then return waiting(app,o,f,L.t.roles.spotter) end
- local F=app.F; local me=F.cars[F.player]
+ local F=app.F
+ -- Radio de la voiture regardée en cours (src/spectator.lua) : ses côtés et ses écarts, jamais ceux du joueur figés
+ -- (relecture du 15/11/2026).
+ local sp=app.spectator; local watching=sp and (sp.index or -1)>=0 and sp.s
+ local ref=watching and sp.index or F.player
+ local me=F.cars[ref]
  local lines=app.cfg.radioLines
  local t0=top(app,o)
- local h=t0+4+58+46+lines*15+10
+ -- Lignes de radio : 12 × 1,45 px chacune (fonction radio), jamais coupées en bas.
+ local h=t0+4+58+46+math.ceil(lines*12*1.45)+10
  local d=app.link.d
  local state=d and d.neutral and (d.neutralMode=='sc' and 'SC' or d.neutralMode=='vsc' and 'VSC' or d.neutralMode=='fcy' and 'FCY' or ov.neutral) or (d and d.panelTitle or '')
- frameBox(app,o,f,h,L.t.roles.spotter,state)
- -- Côte à côte : voiture du joueur au centre, côtés allumés quand une voiture est à côté.
- local p=app.spotter.prox
+ frameBox(app,o,f,h,watching and me and me.name or L.t.roles.spotter,state,watching and ov.camera or nil)
+ -- Côte à côte : voiture au centre, côtés allumés quand une voiture est à côté.
+ local p=watching and sp.s.prox or app.spotter.prox
  local cx=f.w*0.5; local y=t0+4
  W.rect(cx-9,y+4,18,40,c.text,3)
  sideBar(c,y,p.left,cx-96,ov.left,true); sideBar(c,y,p.right,cx+26,ov.right,false)
@@ -176,7 +183,7 @@ function M.draw.spotter(app,f,o)
  -- Écarts (en direct) avec les voisins au classement.
  local ahead,behind=nil,nil
  if me then ahead,behind=Position.neighbours(F,me) end
- if F.isRace then y=gapRow(app,f,c,ov,y,ov.ahead,ahead,true); y=gapRow(app,f,c,ov,y,ov.behind,behind,false) else y=y+40 end
+ if F.isRace then y=gapRow(app,f,c,ov,y,ov.ahead,ahead,true,ref); y=gapRow(app,f,c,ov,y,ov.behind,behind,false,ref) else y=y+40 end
  y=y+6
  W.rect(12,y,f.w-24,1,c.rule); y=y+6
  radio(app,12,y,f.w-24,SPOTTER_ROLES,lines,12)
@@ -199,18 +206,21 @@ end
 -- Vie d'un pneu (comme SuperHUD : 1 - usure d'AC), en %, ou nil.
 local function life(t) local wv=t.wear; if type(wv)=='number' and wv>=0 and wv<=1 then return (1-wv)*100 end return nil end
 -- Défaut d'un pneu, le plus grave d'abord (texte court, couleur), ou nil.
-local function defect(t,ov,c)
+-- Seuils de la radio (src/engineer.lua) : méplat > 0,2, cloques > 0,35, grains > 0,35 seulement sur un pneu chaud
+-- (warm : depuis Engineer.GRAIN_WARM s pour la vôtre, à température maintenant pour une autre voiture), comme SuperHUD.
+local function defect(t,ov,c,warm)
  if t.blown then return ov.blown,c.danger end
- if (t.flat or 0)>0.3 then return ov.flat,c.warn end
- if (t.blister or 0)>0.3 then return ov.blister,c.warn end
- if (t.grain or 0)>0.3 then return ov.grain,c.warn end
+ local D=Engineer.DEFECT
+ if (t.flat or 0)>D.flat then return ov.flat,c.warn end
+ if (t.blister or 0)>D.blister then return ov.blister,c.warn end
+ if (t.grain or 0)>D.grain and warm then return ov.grain,c.warn end
  return nil
 end
 local LIFE={'tyreL1','tyreL2','tyreL3','tyreL4'}
 -- Hauteur du dernier dessin des overlays à contenu variable (cadre dessiné avant le contenu).
 local heights={}
 local IMO={'tyreS1','tyreS2','tyreS3','tyreS4'}
--- Ingénieur (1.3.9) : voiture affichée (la vôtre, ou celle que suit la caméra) : carburant, pneus (cœur, surface,
+-- Ingénieur (Beta 2.0.0) : voiture affichée (la vôtre, ou celle que suit la caméra) : carburant, pneus (cœur, surface,
 -- vie, km, défauts), âge du train ou relais, freins, dégâts, rythme (dernier, cible, moyenne des 3, meilleur),
 -- radio de l'ingénieur (toujours la vôtre).
 function M.draw.engineer(app,f,o)
@@ -264,7 +274,10 @@ function M.draw.engineer(app,f,o)
    W.text(text(TYRE_T[k],'%d°',math.floor((tt.core or 0)+0.5)),bx+8,by+4,14,c.text,'mono')
    local lv=life(tt)
    if lv then W.right(text(LIFE[k],'%d %%',math.floor(lv+0.5)),bx+bw-6,by+5,11,lv<35 and c.danger or lv<60 and c.warn or c.ok,'mono') end
-   local dtext,dcol=defect(tt,ov,c)
+   local warm
+   if own then warm=(app.engineer.grainWarm and app.engineer.grainWarm[k] or 0)>=Engineer.GRAIN_WARM
+   else warm=(tt.core or 0)>=(tt.opt or 80)-(app.cfg.tyreCold or 15) end
+   local dtext,dcol=defect(tt,ov,c,warm)
    if dtext then W.text(dtext,bx+8,by+24,9,dcol,'label')
    else W.text(text(IMO[k],'%d · %d · %d',math.floor((tt.inner or 0)+0.5),math.floor((tt.mid or 0)+0.5),math.floor((tt.outer or 0)+0.5)),bx+8,by+24,9,c.muted,'mono') end
    W.right(text(TYRE_KM[k],'%s km',num(TYRE_KM[k],tt.vkm or 0,1,mark)),bx+bw-6,by+25,9,c.muted,'mono')
@@ -565,9 +578,13 @@ local function content(v,app,o)
  if not ok then v.err=v.err or h elseif not ok2 then v.err=v.err or err2 end
 end
 -- Positions automatiques (réglage X ou Y à -1) : spotter et ingénieur à gauche l'un sous l'autre, stratégie à droite.
-local function defaultPos(o,sw,sh,w,v)
+local function defaultPos(o,sw,sh,w,v,cfg)
  if o=='spotter' then return sw*0.015,sh*0.26 end
- if o=='engineer' then return sw*0.015,sh*0.26+(v.spotter.hp>0 and v.spotter.hp or 240)+12 end
+ -- Sous le spotter seulement s'il est affiché sur ce bureau (relecture du 15/11/2026 : hauteur d'un autre bureau).
+ if o=='engineer' then
+  if cfg and not cfg.spotterShow then return sw*0.015,sh*0.26 end
+  return sw*0.015,sh*0.26+(v.spotter.hp>0 and v.spotter.hp or 240)+12
+ end
  return sw-w-sw*0.015,sh*0.26
 end
 -- Rappel IN_GAME : chaque overlay affiché dans sa fenêtre transparente. Masqués : app coupée, overlays coupés
@@ -584,7 +601,7 @@ function M.hud(v,app)
  local connected=app.link.state=='connected'
  local screen=app.screen and app.screen() or nil
  local sw=screen and screen.x or Config.screenDefault.x; local sh=screen and screen.y or Config.screenDefault.y
- -- 1.3.9 : blocs de SuperHUD sur ce bureau (installé, réglage, clé vivante), puis nos overlays déjà placés : une
+ -- Beta 2.0.0 : blocs de SuperHUD sur ce bureau (installé, réglage, clé vivante), puis nos overlays déjà placés : une
  -- position automatique (Y à -1) se décale verticalement pour ne rien recouvrir.
  local avoid=nil
  if app.has and app.has.superhud and cfg.shAvoid and app.superhud then
@@ -596,7 +613,7 @@ function M.hud(v,app)
   local unlocked=app.editing or not cfg[k.locked]
   if cfg[k.show] and (unlocked or not hidden and connected) then
    local s=cfg[k.scale]; local w=M.design[o]*s; local h=math.max(30,st.h)*s
-   local dx,dy=defaultPos(o,sw,sh,w,v)
+   local dx,dy=defaultPos(o,sw,sh,w,v,cfg)
    local x=cfg[k.x]>=0 and cfg[k.x] or dx
    local y=cfg[k.y]>=0 and cfg[k.y] or dy
    x=U.clamp(x,0,math.max(0,sw-w)); y=U.clamp(y,0,math.max(0,sh-h))
