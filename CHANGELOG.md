@@ -2,6 +2,10 @@
 
 All notable changes to SpotterEngineer. Newest first. SpotterEngineer requires AdvancedIA: see [COMPATIBILITY.md](COMPATIBILITY.md).
 
+## Unreleased
+
+- App icon: the helmet now reads « SpotterEngineer » (`icon_v2.png`, from the retouched `docs/icon-512.png`). It has a new file name, so an in-game update never has to replace an image the game holds open. The old `icon.png` is no longer used.
+
 ## Beta 2.1.1 — 16 November 2026
 
 ### Changed: the app is now called SpotterEngineer

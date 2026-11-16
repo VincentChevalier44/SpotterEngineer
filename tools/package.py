@@ -32,7 +32,7 @@ def runtime():
 
 
 def collect():
-    files = [APP / name for name in ['SpotterEngineer.lua', 'manifest.ini', 'icon.png', *NOTICES]]
+    files = [APP / name for name in ['SpotterEngineer.lua', 'manifest.ini', 'icon_v2.png', *NOTICES]]
     for folder, patterns in [('src', ['*.lua']), ('sounds', ['*.wav']), ('vox', ['*/*.wav', '*/*/*.wav', '*/*/*/*.wav']), ('fonts', ['*/*.ttf', '*/OFL.txt'])]:
         for pattern in patterns:
             files.extend((APP / folder).glob(pattern))

@@ -25,7 +25,7 @@ local function setup(withBridge)
  for k,v in pairs(H.preFiles or {}) do H.files[k]=v end
  H.files[H.appsDir..'/SpotterEngineer/manifest.ini']=APP_MANIFEST
  for k,v in pairs(H.extraFiles or {}) do H.files[k]=v end
- H.files[H.appsDir..'/SpotterEngineer/icon.png']='png'; H.images=0; H.windows=0; H.windowIds={}; H.audio={}; H.minEngine=1
+ H.files[H.appsDir..'/SpotterEngineer/icon_v2.png']='png'; H.images=0; H.windows=0; H.windowIds={}; H.audio={}; H.minEngine=1
  H.shared={}; H.played={}; H.logs={}; H.clock=0; H.texts={}; if not H.keepStorage then H.storage={} end; H.desktop=H.startDesktop or 0
  for k in pairs(script) do script[k]=nil end
 end

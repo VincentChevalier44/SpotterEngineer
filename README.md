@@ -97,7 +97,7 @@ The package already has the right structure (`apps/lua/SpotterEngineer/…`). It
 3. Copy that folder into `assettocorsa/apps/lua/` and **rename it exactly `SpotterEngineer`**.
 4. Check the final path: `assettocorsa/apps/lua/SpotterEngineer/manifest.ini`.
 
-The repository download also contains the test bench, the tools and the documentation (`tests/`, `tools/`, `docs/`). The game never loads them, so they can stay. `docs/icon-512.png` (the official 512 × 512 icon) and `docs/banner.jpg` are optional: the game uses `icon.png`.
+The repository download also contains the test bench, the tools and the documentation (`tests/`, `tools/`, `docs/`). The game never loads them, so they can stay. `docs/icon-512.png` (the official 512 × 512 icon) and `docs/banner.jpg` are optional: the game uses `icon_v2.png`.
 
 ### First launch
 

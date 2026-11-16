@@ -135,7 +135,7 @@ voice.onEvent=function(kind,item,again)
  elseif kind=='expired' then jlog('radio périmée sans être dite : '..tostring(item.key))
  elseif kind=='repeat' then jlog('radio non redite (déjà entendue) : '..tostring(item.key)) end
 end
-local app={cfg=cfg,run=run,link=link,voice=voice,F=F,timing=timing,spotter=spotter,engineer=engineer,fontDir=Port.fontDir(),logo=Port.appFile('icon.png'),
+local app={cfg=cfg,run=run,link=link,voice=voice,F=F,timing=timing,spotter=spotter,engineer=engineer,fontDir=Port.fontDir(),logo=Port.appFile('icon_v2.png'),
  oldFolder=Port.oldFolderInstalled(),has={setuplab=SetupLab.installed(Port.setupLabManifest()),superhud=SuperHUD.installed(Port.superhudManifest())},superhud=SuperHUD.new(),focus=Focus.new(),spectator=Spectator.new(),version=Port.ownVersion(),updater=nil,updatePort=updatePort,updateStopped=false,voicePresent=present,voiceTotal=Catalog.fileCount(),now=0,real=0,errors=errors,bridgeWhy=bridgeWhy}
 -- Horloge de la radio (app.radioNow, ctx.real, Voice.step) : le temps réel sans les pauses du jeu. En pause, les délais
 -- de la radio (validité, délai par clé, rythme, redite) ne s'écoulent pas ; la phrase en cours finit, et l'essai de la

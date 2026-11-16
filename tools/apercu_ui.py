@@ -84,7 +84,7 @@ def main():
     g = lua.globals()
     host = g.HOST
     host.measure = measure
-    host.realIcon = str(APP / 'icon.png')
+    host.realIcon = str(APP / 'icon_v2.png')
     tests = lua.execute((APP / 'tests' / 'integration_spec.lua').read_text(encoding='utf-8'))
     lua.execute("HOST.recordOn=false")
     tests.full_race_with_bridge()
