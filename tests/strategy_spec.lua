@@ -184,7 +184,7 @@ function T.no_fuel_use_no_fuel_effect()
  local m=SD.model(d,{fuel=50},cfg,100,0)
  check(m.fuelK==0,'model without fuel effect')
 end
--- Plan d'arrêt pour AdvancedIA (contrat SpotterEnginer.pitplan v1) : prévu, « box » au tour d'arrêt dès 10 % du tour,
+-- Plan d'arrêt pour AdvancedIA (contrat SpotterEngineer.pitplan v1) : prévu, « box » au tour d'arrêt dès 10 % du tour,
 -- fait après la voie des stands jusqu'au plan d'un arrêt suivant ; rien tant que le plan n'est pas prêt ; format.
 function T.pitplan_contract_v1()
  local Strategist=require('src/strategist')

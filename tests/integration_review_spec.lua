@@ -1,4 +1,4 @@
--- Revue du 10/11/2026, sur l'hôte CSP factice (tests/host.lua) et SpotterEnginer.lua réel, une voiture (le joueur) :
+-- Revue du 10/11/2026, sur l'hôte CSP factice (tests/host.lua) et SpotterEngineer.lua réel, une voiture (le joueur) :
 -- liaison suspendue, horloge de la radio figée en pause, essai de la voix sans AdvancedIA, redémarrage de la séance au
 -- premier tour, réglages enregistrés au déchargement, overlay Stratégie sans fenêtre, édition en jeu gardée quand un
 -- overlay est en erreur, repli de la mise à jour, mémoire gardée au rechargement à chaud. Variables : voir
@@ -10,7 +10,7 @@ local Layout=require('src/bridge_layout')
 local Voice=require('src/voice')
 local Catalog=require('src/catalog')
 local DT=1/30
-local APP=H.appsDir..'/SpotterEnginer'
+local APP=H.appsDir..'/SpotterEngineer'
 local function car()
  local c={isConnected=true,isActive=true,position=vec3(0,0,0),look=vec3(0,0,1),speedKmh=120,splinePosition=0.3,lapCount=0,racePosition=1,
   isInPitlane=false,isInPit=false,previousLapTimeMs=0,bestLapTimeMs=0,isAIControlled=false,isUserControlled=true,isRetired=false,
@@ -43,7 +43,7 @@ local function boot(opts)
  H.sim.isMouseSteeringActive=false
  H.cars={[0]=car()}
  for k in pairs(script) do script[k]=nil end
- assert(load(APP_SOURCE,'@SpotterEnginer.lua'))()
+ assert(load(APP_SOURCE,'@SpotterEngineer.lua'))()
  hello,data=require('src/port').bridgeOpen()
  return SPE_TEST.app
 end
@@ -169,7 +169,7 @@ function T.strategy_overlay_without_window_and_editor_kept()
  H.windowIds={}; H.texts={}; script.SPE__HUD()
  local texts=table.concat(H.texts,'|')
  check(app.errors.count==before,'no error with a committed box and no window: '..tostring(app.errors.last))
- check(H.windowIds['SpotterEnginer_d1_strategy'] and texts:find('Aucun arrêt',1,true),'strategy overlay drawn: no stop')
+ check(H.windowIds['SpotterEngineer_d1_strategy'] and texts:find('Aucun arrêt',1,true),'strategy overlay drawn: no stop')
  check(H.windowIds[E.ids.launcher] and H.windowIds[E.ids.panel],'editor drawn')
  local draw=O.draw.engineer
  O.draw.engineer=function() error('overlay broken') end
@@ -181,7 +181,7 @@ function T.strategy_overlay_without_window_and_editor_kept()
  app.toggleEditor()
  t.plan=plan; t.boxLap=box; app.link.state=state; app.link.d=d
 end
--- Module de la mise à jour illisible : le remplaçant de SpotterEnginer.lua n'a pas la liste des dossiers d'AdvancedIA ;
+-- Module de la mise à jour illisible : le remplaçant de SpotterEngineer.lua n'a pas la liste des dossiers d'AdvancedIA ;
 -- le port se charge quand même, avec les deux noms connus.
 function T.port_loads_without_the_update_module()
  local loaded=package.loaded

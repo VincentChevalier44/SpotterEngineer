@@ -1,4 +1,4 @@
--- SpotterEnginer : spotter et ingénieur de course à la voix (français / anglais), adossés à AdvancedIA.
+-- SpotterEngineer : spotter et ingénieur de course à la voix (français / anglais), adossés à AdvancedIA.
 -- Sans AdvancedIA connecté et en marche (pont src/bridge_layout.lua), l'app ne dit rien : elle affiche seulement
 -- l'état de la liaison. Une image : lecture de CSP (src/port.lua) -> liaison -> chronométrage -> spotter et ingénieur
 -- (modules purs, chacun protégé) -> radio. Fenêtres : réglages (SPE__MAIN) et trois overlays (Spotter, Ingénieur,
@@ -136,7 +136,7 @@ voice.onEvent=function(kind,item,again)
  elseif kind=='repeat' then jlog('radio non redite (déjà entendue) : '..tostring(item.key)) end
 end
 local app={cfg=cfg,run=run,link=link,voice=voice,F=F,timing=timing,spotter=spotter,engineer=engineer,fontDir=Port.fontDir(),logo=Port.appFile('icon.png'),
- has={setuplab=SetupLab.installed(Port.setupLabManifest()),superhud=SuperHUD.installed(Port.superhudManifest())},superhud=SuperHUD.new(),focus=Focus.new(),spectator=Spectator.new(),version=Port.ownVersion(),updater=nil,updatePort=updatePort,updateStopped=false,voicePresent=present,voiceTotal=Catalog.fileCount(),now=0,real=0,errors=errors,bridgeWhy=bridgeWhy}
+ oldFolder=Port.oldFolderInstalled(),has={setuplab=SetupLab.installed(Port.setupLabManifest()),superhud=SuperHUD.installed(Port.superhudManifest())},superhud=SuperHUD.new(),focus=Focus.new(),spectator=Spectator.new(),version=Port.ownVersion(),updater=nil,updatePort=updatePort,updateStopped=false,voicePresent=present,voiceTotal=Catalog.fileCount(),now=0,real=0,errors=errors,bridgeWhy=bridgeWhy}
 -- Horloge de la radio (app.radioNow, ctx.real, Voice.step) : le temps réel sans les pauses du jeu. En pause, les délais
 -- de la radio (validité, délai par clé, rythme, redite) ne s'écoulent pas ; la phrase en cours finit, et l'essai de la
 -- voix (priorité 1) part quand même.
@@ -183,10 +183,12 @@ local function apply()
  Lang.set(cfg.language)
 end
 apply()
-jlog(string.format('=== SpotterEnginer %s : %s ===',app.version,journalContinued and "rechargement de l'app" or 'lancement'))
+jlog(string.format('=== SpotterEngineer %s : %s ===',app.version,journalContinued and "rechargement de l'app" or 'lancement'))
 jlog(string.format('réglages : langue %s, app %s, volume %d %%, voiture pendant la radio %s, spotter %s, ingénieur %s, stratégie %s, direction de course %s, côte à côte %s',
  tostring(cfg.language),cfg.enabled and 'active' or 'coupée',math.floor((cfg.volume or 0)*100+0.5),cfg.duck and math.floor((cfg.duckLevel or 1)*100+0.5)..' %' or 'non baissée',
  cfg.spotterOn and 'oui' or 'non',cfg.engineerOn and 'oui' or 'non',cfg.strategyOn and 'oui' or 'non',cfg.raceControl and 'oui' or 'non',cfg.sideBySide and 'oui' or 'non'))
+if app.oldFolder then jlog('ATTENTION : ancien dossier apps/lua/SpotterEnginer encore installé, à supprimer') end
+if Port.importedOld then jlog('réglages repris de SpotterEnginer (ancien nom)'); dirtyAt=Port.clock() end
 if Port.settingsFailed then jlog('ERREUR : réglages enregistrés illisibles : valeurs par défaut, aucune écriture avant un changement') end
 jlog(string.format('voix : %d clips ; AdvancedIA %s ; pont %s',present or 0,installed and (release~='' and release or 'installé') or 'absent',
  hello and 'ouvert' or 'indisponible ('..tostring(bridgeWhy)..')'))
@@ -200,7 +202,7 @@ local UPDATE_DELAY,BOOT_FRAMES,BOOT_DRAWS=10,10,3
 -- Vérification de lancement : pas de nouvelle interrogation de GitHub à chaque rechargement à chaud de l'app. L'heure
 -- de la dernière (heure du système, mémoire de la partie) la repousse à UPDATE_AGAIN s après elle ; le bouton
 -- « Vérifier » n'est pas concerné.
-local UPDATE_AGAIN,UPDATE_KEY=600,'SpotterEnginer.updateChecked'
+local UPDATE_AGAIN,UPDATE_KEY=600,'SpotterEngineer.updateChecked'
 local updateDue=nil
 local updater=Update.new(Update.label and Update.label(app.version) or app.version)
 app.updater=updater
@@ -358,7 +360,7 @@ local function protected(fn,...)
   errors.count=errors.count+1
   local text=tostring(err):sub(1,200)
   errors.last=text
-  if not errors.seen[text] then errors.seen[text]=true; pcall(ac.log,'SpotterEnginer: '..text); jlog('ERREUR : '..text) end
+  if not errors.seen[text] then errors.seen[text]=true; pcall(ac.log,'SpotterEngineer: '..text); jlog('ERREUR : '..text) end
  end
  return ok
 end
@@ -581,10 +583,10 @@ local function step(dt)
  -- Plan d'arrêt pour AdvancedIA (contrat v1) : écrit à chaque changement ; le stamp avance chaque seconde de simulation.
  -- Selon les réglages seulement : en pause, le plan reste celui d'avant (AdvancedIA ne repasse pas à ses rappels).
  local pitplan=Strategist.pitplan(engineer.strategist,ctx,cfg.enabled and cfg.engineerOn and cfg.strategyOn)
- if pitplan~=pitplanText then pitplanText=pitplan; Port.store(Strategist.pitplanKey,pitplan) end
+ if pitplan~=pitplanText then pitplanText=pitplan; Port.store(Strategist.pitplanKey,pitplan); Port.store(Strategist.pitplanKeyOld,pitplan) end
  -- Duel de stratégie (undercut, overcut, menace) pour l'affichage d'AdvancedIA (1.3.4, contrat v1), mêmes règles.
  local duelNow=Strategist.strategy(engineer.strategist,ctx,cfg.enabled and cfg.engineerOn and cfg.strategyOn)
- if duelNow~=duelText then duelText=duelNow; Port.store(Strategist.strategyKey,duelNow) end
+ if duelNow~=duelText then duelText=duelNow; Port.store(Strategist.strategyKey,duelNow); Port.store(Strategist.strategyKeyOld,duelNow) end
 end
 -- Réglages enregistrés et raccourcis, à part : une erreur dans l'image ne les arrête pas.
 local function settingsStep()
@@ -646,7 +648,7 @@ end
 -- réglage d'overlay fait aussitôt irait sinon dans le bureau quitté.
 function script.SPE__MAIN() syncDesktop(); app.voicePresent=present; window(drawMain) end
 -- Fenêtre de réglages en jeu (barre des applications, comme SuperHUD) ; la fenêtre principale reste celle des stands
--- et du menu pause (SETUP), ouverte aussi par AdvancedIA (IMGUI_LUA_SpotterEnginer_main).
+-- et du menu pause (SETUP), ouverte aussi par AdvancedIA (IMGUI_LUA_SpotterEngineer_main).
 function script.SPE__GAME()
  syncDesktop(true); app.voicePresent=present
  app.gameWindow=true; window(drawMain); app.gameWindow=false

@@ -50,7 +50,7 @@ function M.desktop()
 end
 -- Fenêtre de réglages en jeu (NAME de WINDOW_1 dans manifest.ini), retrouvée comme SuperHUD retrouve sa fenêtre de
 -- configuration : ac.getAppWindows puis ac.accessAppWindow, recherche au plus une fois par seconde ; nil sans ces API.
-M.gameTitle='SpotterEnginer - Config'
+M.gameTitle='SpotterEngineer - Config'
 local gameWin={w=nil,next=-1e9}
 -- Recherche protégée, fonction du module (aucune fermeture créée à chaque image ; relecture du 15/11/2026).
 local function findGameWindow()
@@ -114,7 +114,7 @@ end
 -- ac.setAppWindowVisible si CSP l'a.
 function M.closeGameWindow()
  if M.applyWindow({open=false}) then return true end
- if callable(ac.setAppWindowVisible) then return pcall(ac.setAppWindowVisible,'SpotterEnginer','game',false) end
+ if callable(ac.setAppWindowVisible) then return pcall(ac.setAppWindowVisible,'SpotterEngineer','game',false) end
  return false
 end
 -- Touche enfoncée (code de touche virtuelle Windows), comme les raccourcis de SuperHUD.
@@ -135,7 +135,7 @@ end
 -- principal porte le nom du dossier (règle de CSP). Les clés du pont gardent l'ancien préfixe « ACAdvancedIA.Bridge »
 -- exprès (protocole figé, src/bridge_layout.lua) : ne pas les renommer.
 -- Dossiers possibles d'AdvancedIA (nouveau nom d'abord) : une seule liste, celle de la mise à jour (src/update.lua).
--- Module de la mise à jour illisible (remplaçant posé par SpotterEnginer.lua, sans cette liste) : les deux noms connus.
+-- Module de la mise à jour illisible (remplaçant posé par SpotterEngineer.lua, sans cette liste) : les deux noms connus.
 do
  local ok,up=pcall(require,'src/update')
  local list=ok and type(up)=='table' and type(up.companion)=='table' and up.companion.folders
@@ -170,6 +170,8 @@ local function manifestText(folder)
  local path=M.luaAppsDir()..'/'..folder..'/manifest.ini'
  return io.fileExists(path) and io.load(path,'') or nil
 end
+-- Ancien dossier de l'app (SpotterEnginer, jusqu'à Beta 2.0.0) encore installé : deux radios tourneraient.
+function M.oldFolderInstalled() return M.companionManifest('SpotterEnginer')~=nil end
 function M.companionManifest(folder)
  local ok,text=pcall(manifestText,folder)
  return ok and type(text)=='string' and text or nil
@@ -331,11 +333,11 @@ function M.duckCar(index,level)
  for _,ch in ipairs(DUCK) do pcall(ac.setAudioVolume,ch,(ducked.orig[ch] or 1)*level,index) end
  return true
 end
--- Journal de session sur disque (Documents/Assetto Corsa/logs/SpotterEnginer.log), comme celui d'AdvancedIA : un
--- fichier par lancement du jeu, trois précédents gardés (SpotterEnginer.1.log à .3.log) ; un rechargement de l'app
+-- Journal de session sur disque (Documents/Assetto Corsa/logs/SpotterEngineer.log), comme celui d'AdvancedIA : un
+-- fichier par lancement du jeu, trois précédents gardés (SpotterEngineer.1.log à .3.log) ; un rechargement de l'app
 -- dans le même lancement (repère ac.store) poursuit le même fichier. Une ligne = ouverture, ajout, fermeture ; 2 Mo
 -- au plus par lancement ; après trois échecs d'écriture, le journal se coupe sans gêner l'app.
-local journal={path=nil,bytes=0,failures=0,max=2*1024*1024,keep=3,marker='SpotterEnginer.journal'}
+local journal={path=nil,bytes=0,failures=0,max=2*1024*1024,keep=3,marker='SpotterEngineer.journal'}
 -- Mémoire de la partie (ac.store : gardée au rechargement de l'app, vidée à la relance du jeu), lue par d'autres apps.
 function M.store(key,text) if callable(ac.store) then pcall(ac.store,key,text) end end
 -- Valeur de cette mémoire (chaîne ou nombre, SDK de CSP), ou nil.
@@ -350,7 +352,7 @@ function M.wallClock() return os.time() end
 -- ou nil, keep.store(name,text) l'écrit. ac.load rend une chaîne, un nombre ou nil (SDK de CSP) ; inerte hors du jeu.
 -- Portée : un numéro par séance suivie (keep.resume) ; ce qui a été gardé pendant une autre séance, ou avant un
 -- redémarrage de la séance, n'est plus lu (rien à effacer). Chaîne vide : nil.
-local KEEP='SpotterEnginer.keep.'
+local KEEP='SpotterEngineer.keep.'
 local scope='0.'
 local function keepLoad(key)
  local host=rawget(_G,'ac')
@@ -367,7 +369,7 @@ local function keepStore(key,text)
 end
 M.keep={load=function(name) return keepLoad(scope..tostring(name)) end,
  store=function(name,text) return keepStore(scope..tostring(name),text) end}
--- Séance suivie par l'app (à chaque remise à zéro, SpotterEnginer.lua). again : première remise à zéro depuis le
+-- Séance suivie par l'app (à chaque remise à zéro, SpotterEngineer.lua). again : première remise à zéro depuis le
 -- chargement de l'app ; vrai si c'est la séance déjà suivie avant un rechargement à chaud (même portée : ce qui a été
 -- gardé se relit), sinon une portée neuve.
 function M.keep.resume(session,again)
@@ -384,7 +386,7 @@ function M.journalOpen()
   if not io or type(io.open)~='function' or not ac.getFolder or not ac.FolderID or not ac.FolderID.Logs then return end
   local root=ac.getFolder(ac.FolderID.Logs)
   if type(root)~='string' or root=='' then return end
-  local base=root:gsub('\\','/')..'/SpotterEnginer'
+  local base=root:gsub('\\','/')..'/SpotterEngineer'
   local mark=callable(ac.load) and ac.load(journal.marker) or nil
   continued=mark=='1' and type(io.fileExists)=='function' and io.fileExists(base..'.log')==true
   if not continued and type(io.fileExists)=='function' and type(io.move)=='function' then
@@ -440,13 +442,48 @@ local storage=nil
 -- n'enregistre rien avant un vrai changement du pilote (relecture du 15/11/2026 : une lecture ratée écrasait tout par
 -- les valeurs par défaut une seconde plus tard). Premier lancement (texte vide) : pas un échec.
 M.settingsFailed=false
+-- Réglages de l'app sous son ancien nom (SpotterEnginer, jusqu'à Beta 2.0.0) : fichier d'état de CSP de l'ancien
+-- dossier, repris une fois au premier lancement de SpotterEngineer (rien d'enregistré encore). Texte JSON, ou nil.
+M.oldStateFiles={'/lua/app/SpotterEnginer.ini'}
+local function oldStateText(path)
+ if not io.fileExists(path) then return nil end
+ local raw=io.load(path,'')
+ if type(raw)~='string' then return nil end
+ for line in raw:gmatch('[^'..string.char(13,10)..']+') do
+  local v=line:match("^%-?%d+='(.*)'$")
+  if v and v~='' then return v end
+ end
+ return nil
+end
+function M.oldSettings()
+ local roots={}
+ if ac.FolderID and callable(ac.getFolder) then
+  local okS,st=pcall(ac.getFolder,ac.FolderID.ExtCfgState); if okS and type(st)=='string' then roots[#roots+1]=st end
+  local okD,doc=pcall(ac.getFolder,ac.FolderID.Documents); if okD and type(doc)=='string' then roots[#roots+1]=doc..'/cfg/extension/state' end
+ end
+ for _,root in ipairs(roots) do
+  for _,f in ipairs(M.oldStateFiles) do
+   local ok,text=pcall(oldStateText,root..f)
+   if ok and text then
+    local okp,data=pcall(JSON.parse,text)
+    if okp and type(data)=='table' and data.schema then return data end
+   end
+  end
+ end
+ return nil
+end
+M.importedOld=false
 function M.loadSettings()
  M.settingsFailed=false
  local ok,s=pcall(ac.storage,{settings=''},'spe:')
  if not ok or not s then M.settingsFailed=true; return {} end
  storage=s
  local text=s.settings
- if type(text)~='string' or text=='' then return {} end
+ if type(text)~='string' or text=='' then
+  local old=M.oldSettings()
+  if old then M.importedOld=true; return old end
+  return {}
+ end
  local okp,data=pcall(JSON.parse,text)
  if okp and type(data)=='table' then return data end
  M.settingsFailed=true

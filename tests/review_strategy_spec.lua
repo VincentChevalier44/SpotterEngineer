@@ -365,7 +365,7 @@ function T.lane_loss_needs_a_full_pass()
  check(pass(d3,3,true,0)==nil and d3.laneLoss==nil,'put at its box (returned to the pits): not measured')
  check(pass(d3,3,false,80) and d3.laneLoss,'next full pass: measured')
 end
--- 1.3.4. Duel de stratégie publié pour AdvancedIA (clé SpotterEnginer.strategy, contrat v1 du 11/11/2026).
+-- 1.3.4. Duel de stratégie publié pour AdvancedIA (clé SpotterEngineer.strategy, contrat v1 du 11/11/2026).
 function T.strategy_contract_v1()
  local function ctxOf(lap,over)
   local F={isRace=true,player=0,clock=123.9,cars={[0]={valid=true,laps=lap-1,spline=0.4,pitlane=false,finished=false}}}
@@ -534,5 +534,64 @@ function T.timed_race_total_follows_the_leader()
  -- Joueur en tête : son propre compte (comme avant).
  me.position=1; leader.position=2
  check(St.total(t,F,me)==9+math.max(1,math.floor(150/100+0.6)+1),'leading: own count')
+end
+-- Annonces de Beta 2.1.1 (choix du pilote du 15/11/2026), côté ingénieur, sur les vrais modules.
+local function texts(v,key) local out={}; for _,q in ipairs(v.log) do if q.key==key then out[#out+1]=q.text end end; for _,q in ipairs(v.queue) do if q.key==key then out[#out+1]=q.text end end; return out end
+-- « Plus que 10, 5, 2 tours » une fois chacun ; jamais sous neutralisation.
+function T.countdown_laps_left()
+ local w=world({laps=14,fuel=60,rivals={{spline=0.4}}})
+ w.step(1500,function(w) Engineer.step(w.engineer,w.ctx,1) end)
+ local said=texts(w.voice,'countdown')
+ check(#said==3,'three marks: '..table.concat(said,' / '))
+ local w2=world({laps=14,fuel=60,rivals={{spline=0.4}},d={neutral=true,neutralMode='sc',pitState='off',mandatoryStops=0}})
+ w2.step(1500,function(w) Engineer.step(w.engineer,w.ctx,1) end)
+ check(#texts(w2.voice,'countdown')==0,'under neutralisation: none')
+end
+-- Pénalité en temps : dite à l'ajout ; écart à tenir rappelé à 5 tours de la fin quand il est trop petit.
+function T.time_penalty_and_margin()
+ local w=world({laps=12,fuel=60,rivals={{spline=0.47}}})
+ w.ctx.link.cars={[0]={valid=true,timeAdded=0,strikes=0,pending=0,cutLeft=0}}
+ w.F.cars[0].position=1; w.F.cars[1].position=2
+ w.step(150,function(w) Engineer.step(w.engineer,w.ctx,1) end)
+ w.ctx.link.cars[0].timeAdded=5
+ w.step(800,function(w) Engineer.step(w.engineer,w.ctx,1) end)
+ local said=texts(w.voice,'timePenalty')
+ check(#said>=1 and said[1]:find('5',1,true),'penalty said: '..table.concat(said,' / '))
+ check(#said>=2,'margin reminded (car behind within 5 s): '..table.concat(said,' / '))
+end
+-- Box raté : « box ce tour-ci » dit, le tour passé sans entrer dans la voie.
+function T.missed_box_said_once()
+ local Strategist=require('src/strategist')
+ local v,sayer=radio()
+ local F={isRace=true,player=0,cars={[0]={laps=9,spline=0.3,pitlane=false}}}
+ local ctx={F=F,cfg={boxCalls=true,neutralBox=true,tolerance=2},link={d={pitsClosed=false,neutral=false}},say=sayer,real=0}
+ local t={ready=true,plan={ok=true,optimal=10,costs={}},boxSaid={}}
+ Strategist.boxCalls(t,ctx)
+ F.cars[0].laps=10; F.cars[0].spline=0.2; t.plan={ok=true,optimal=14,costs={}}; ctx.real=200
+ Strategist.boxCalls(t,ctx)
+ check(said(v,'missedBox')==1,'missed box said')
+ F.cars[0].laps=11; ctx.real=300; Strategist.boxCalls(t,ctx)
+ check(said(v,'missedBox')==1,'once')
+end
+-- Voiture directement derrière qui rentre, puis ressort derrière le joueur avec l'écart.
+function T.car_behind_pits_and_rejoins()
+ local w=world({laps=30,fuel=30,rivals={{spline=0.47}},cfg={rivalPitVoice=true,strategyOn=true,strategyTalk=false}})
+ w.F.cars[0].position=1; w.F.cars[1].position=2
+ w.step(260)
+ w.F.cars[1].pitlane=true; w.step(20)
+ check(said(w.voice,'rivalPitted')==1,'car behind pitting')
+ w.F.cars[1].pitlane=false; w.step(2)
+ local out=texts(w.voice,'rivalOut')
+ check(#out==1 and out[1]:find('derrière',1,true),'out behind, with the gap: '..table.concat(out,' / '))
+end
+-- Meilleur tour de la course : plus rapide que tous les autres, pas avant le 3e tour.
+function T.race_fastest_lap()
+ local w=world({laps=20,fuel=60,lap=100,rivals={{spline=0.4}}})
+ w.step(450,function(w)
+  local me=w.F.cars[0]
+  if me.laps>=3 and me.lastMs==100000 then me.lastMs=99000; me.bestMs=99000 end
+  Engineer.step(w.engineer,w.ctx,1)
+ end)
+ check(said(w.voice,'raceFastestLap')>=1,'fastest lap of the race said')
 end
 return T

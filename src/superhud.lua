@@ -1,4 +1,4 @@
--- SuperHUD (Beta 2.0.0, facultatif : SpotterEnginer ne dépend que d'AdvancedIA) : clé ac.store « SuperHUD.state » écrite par
+-- SuperHUD (Beta 2.0.0, facultatif : SpotterEngineer ne dépend que d'AdvancedIA) : clé ac.store « SuperHUD.state » écrite par
 -- SuperHUD 1.9.6 et plus (contrat v1 avec sa session, 13/11/2026), relue ici. Module pur.
 --   v=1;desk=<bureau CSP 1-4>;sw=<largeur écran px>;sh=<hauteur px>;radar=0|1;stamp=<s>;rects=<x>,<y>,<w>,<h>/...
 -- 1000 octets au plus ; champs futurs ajoutés en fin de texte ; champ illisible : inconnu.
@@ -33,7 +33,7 @@ function M.parse(text)
  return out
 end
 function M.new() return {readAt=-1e9,seen=nil,value=nil,changedAt=nil,blocks={}} end
--- Texte lu (chaîne, nombre ou nil) à l'instant now (temps réel de SpotterEnginer).
+-- Texte lu (chaîne, nombre ou nil) à l'instant now (temps réel de SpotterEngineer).
 function M.feed(s,text,now)
  if type(text)~='string' then text=nil end
  local first=s.seen==nil

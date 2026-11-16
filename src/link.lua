@@ -9,7 +9,7 @@
 --   version    AdvancedIA publie une autre version du pont que celle de cette app ;
 --   suspended  connecté, mais son moteur ne tourne pas (app coupée, pause, replay, en ligne, erreur…) : link.reason ;
 --   connected  connecté, moteur en marche : le spotter et l'ingénieur travaillent.
--- Sans AdvancedIA connecté, SpotterEnginer ne dit rien et n'affiche que l'état de la liaison.
+-- Sans AdvancedIA connecté, SpotterEngineer ne dit rien et n'affiche que l'état de la liaison.
 local Layout=require('src/bridge_layout')
 local M={}
 -- Battement attendu au moins toutes les K.stale secondes (temps réel) ; au-delà : arrêté.

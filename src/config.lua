@@ -1,4 +1,4 @@
--- Réglages de SpotterEnginer : valeurs par défaut, bornes et validation (un réglage illisible reprend sa valeur par
+-- Réglages de SpotterEngineer : valeurs par défaut, bornes et validation (un réglage illisible reprend sa valeur par
 -- défaut). Module pur. Chaque réglage : {clé, défaut, min, max, pas} pour un nombre, {clé, défaut} pour un booléen,
 -- {clé, défaut, {choix}} pour une liste.
 local M={}
@@ -16,7 +16,7 @@ M.schema={
  {'anticipation',true},{'emergencies',true},{'gapEvents',true},
  {'trackLimits',true},{'drsVoice',false},{'deltaVoice',true},{'penaltiesVoice',true},{'flashVoice',true},{'aaiMessages',true},{'sec_penalties',true},{'sec_traffic',true},
  -- Ingénieur
- {'engineerOn',true},{'engineerVolume',1.0,0,2,0.05},{'pace',true},{'paceEvery',3,1,10,1},{'pushHold',true},{'positionCalls',true},{'positionLive',true},{'debrief',true},
+ {'engineerOn',true},{'engineerVolume',1.0,0,2,0.05},{'pace',true},{'paceEvery',3,1,10,1},{'pushHold',true},{'positionCalls',true},{'raceCountdown',true},{'positionLive',true},{'debrief',true},
  {'fuel',true},{'fuelMargin',2.0,0,5,0.25},{'fuelReserve',1,0,3,1},{'fuelK',0.03,0.005,0.08,0.005},
  {'tyres',true},{'tyreCold',15,5,40,1},{'tyreHot',12,4,40,1},{'brakes',true},{'brakeHot',850,400,1200,10},
  {'biasDiff',180,60,400,10},{'damage',true},{'weather',true},{'wind',true},{'windMin',15,5,50,1},{'driving',true},
@@ -79,7 +79,7 @@ M.sections={
    {id='gaps',master='gaps',keys={'gapEvents','gapEvery','gapDecimals','closingAlert'},gate=true}}}},
  engineer={
   {'raceGroup',{
-   {id='pace',master='pace',keys={'paceEvery','pushHold','positionCalls','positionLive'},gate=true},
+   {id='pace',master='pace',keys={'paceEvery','pushHold','positionCalls','positionLive','raceCountdown'},gate=true},
    {id='debrief',master='debrief',keys={},gate=true},
    {id='fuel',master='fuel',keys={'fuelMargin','fuelReserve','fuelK'},gate=true},
    {id='driving',master='driving',keys={'drivingLoss'},gate=true}}},

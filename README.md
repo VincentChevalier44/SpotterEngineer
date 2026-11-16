@@ -1,24 +1,24 @@
-<p align="center"><img src="docs/banner.jpg" width="100%" alt="SpotterEnginer — your crew, every lap. Spotter and race engineer for Assetto Corsa. Requires AdvancedIA."></p>
+<p align="center"><img src="docs/banner.jpg" width="100%" alt="SpotterEngineer — your crew, every lap. Spotter and race engineer for Assetto Corsa. Requires AdvancedIA."></p>
 
-# SpotterEnginer
+# SpotterEngineer
 
 **Your crew, every lap: a voice spotter and race engineer for Assetto Corsa, built on AdvancedIA.**
 
-📖 **Interactive user guide:** https://vincentchevalier44.github.io/SpotterEnginer/
+📖 **Interactive user guide:** https://vincentchevalier44.github.io/SpotterEngineer/
 
-❤️ **Support my work:** SpotterEnginer is free and stays free. If you enjoy it and want to give me a little boost, you can support me on Patreon: [WHK Racing](https://www.patreon.com/cw/WHKRacing). Thank you!
+❤️ **Support my work:** SpotterEngineer is free and stays free. If you enjoy it and want to give me a little boost, you can support me on Patreon: [WHK Racing](https://www.patreon.com/cw/WHKRacing). Thank you!
 
-SpotterEnginer is a Lua app for Assetto Corsa running on Custom Shaders Patch (CSP). It talks to you on the radio, in French or in English, with two separate roles:
+SpotterEngineer is a Lua app for Assetto Corsa running on Custom Shaders Patch (CSP). It talks to you on the radio, in French or in English, with two separate roles:
 
 - a **spotter**: race control, traffic and the cars around you;
 - an **engineer**: pace, fuel, tyres, brakes, conditions, driving advice and pit strategy.
 
 It also draws three in-game overlays: **Spotter**, **Engineer** and **Strategy**.
 
-> **Requires AdvancedIA (Beta 2.0.0 or later) — not a standalone app.**
-> SpotterEnginer reads the race state decided by [AdvancedIA](https://github.com/VincentChevalier44/AdvancedIA) (flags, neutralisations, delta, penalties, pit window, AI sanctions and stops). Without AdvancedIA installed **and** running, it says nothing.
+> **Requires AdvancedIA (Beta 2.0.2 or later) — not a standalone app.**
+> SpotterEngineer reads the race state decided by [AdvancedIA](https://github.com/VincentChevalier44/AdvancedIA) (flags, neutralisations, delta, penalties, pit window, AI sanctions and stops). Without AdvancedIA installed **and** running, it says nothing.
 
-- **Current version:** Beta 2.0.0. See [CHANGELOG.md](CHANGELOG.md) and [COMPATIBILITY.md](COMPATIBILITY.md).
+- **Current version:** Beta 2.1.1. See [CHANGELOG.md](CHANGELOG.md) and [COMPATIBILITY.md](COMPATIBILITY.md).
 - **Voices:** French and English.
 - **Interface:** French and English (setting **Language**, which sets the voice and the interface together). French on a first installation.
 - **Author:** Vincent Chevalier / LHK Informatique.
@@ -71,29 +71,31 @@ It also draws three in-game overlays: **Spotter**, **Engineer** and **Strategy**
 
 - **Assetto Corsa** for PC.
 - **Custom Shaders Patch 0.3.2 or later**, with Lua apps working (the app lives in `assettocorsa/apps/lua/`).
-- **AdvancedIA Beta 2.0.0 or later** (bridge v2), installed in `assettocorsa/apps/lua/AdvancedIA/` (or in the old `apps/lua/ACAdvancedIA/` folder for installations not yet migrated) and running. Some calls need a more recent AdvancedIA: see [COMPATIBILITY.md](COMPATIBILITY.md).
-- **Offline sessions only.** AdvancedIA does nothing online, so SpotterEnginer stays silent there too.
+- **AdvancedIA Beta 2.0.2 or later** (bridge v2), installed in `assettocorsa/apps/lua/AdvancedIA/` (or in the old `apps/lua/ACAdvancedIA/` folder for installations not yet migrated) and running. Some calls need a more recent AdvancedIA: see [COMPATIBILITY.md](COMPATIBILITY.md).
+- **Offline sessions only.** AdvancedIA does nothing online, so SpotterEngineer stays silent there too.
 
 ## Installation
 
-The game loads the app from `assettocorsa/apps/lua/SpotterEnginer/`. The folder name must be exactly `SpotterEnginer`: AdvancedIA only opens its data bridge when `apps/lua/SpotterEnginer/manifest.ini` exists, and CSP stores the app's settings under that name.
+The game loads the app from `assettocorsa/apps/lua/SpotterEngineer/`. The folder name must be exactly `SpotterEngineer`: AdvancedIA only opens its data bridge when `apps/lua/SpotterEngineer/manifest.ini` exists, and CSP stores the app's settings under that name.
 
 Install AdvancedIA first (see its [README](https://github.com/VincentChevalier44/AdvancedIA)).
+
+**Coming from SpotterEnginer (Beta 2.0.0 or older)?** The app was renamed **SpotterEngineer** in Beta 2.1.1, folder included. The in-game **Update** button cannot move an app to a new folder, so install this version by hand (below), then **delete the old `apps/lua/SpotterEnginer` folder** with the game closed. Your settings are taken over at the first launch; until the old folder is gone, the Home tab warns you (otherwise two radios would talk).
 
 ### With Content Manager
 
 1. Close Assetto Corsa.
-2. Download the latest `SpotterEnginer-<version>.zip` from the [Releases page](https://github.com/VincentChevalier44/SpotterEnginer/releases). A `.sha256` file is published next to it to check the download.
+2. Download the latest `SpotterEngineer-<version>.zip` from the [Releases page](https://github.com/VincentChevalier44/SpotterEngineer/releases). A `.sha256` file is published next to it to check the download.
 3. Drag the zip onto the Content Manager window and confirm the installation, or extract it straight into the `assettocorsa` root folder.
 
-The package already has the right structure (`apps/lua/SpotterEnginer/…`). It holds only what the game loads (entry point, manifest, icon, `src/`, `sounds/`, `vox/`, `fonts/`) plus the user notes (`README.md`, `CHANGELOG.md`, `COMPATIBILITY.md`, `LICENSE`).
+The package already has the right structure (`apps/lua/SpotterEngineer/…`). It holds only what the game loads (entry point, manifest, icon, `src/`, `sounds/`, `vox/`, `fonts/`) plus the user notes (`README.md`, `CHANGELOG.md`, `COMPATIBILITY.md`, `LICENSE`).
 
 ### Manual installation
 
 1. Close Assetto Corsa.
-2. On this GitHub page, click **Code › Download ZIP**, then extract the archive. It contains a folder named `SpotterEnginer-main`.
-3. Copy that folder into `assettocorsa/apps/lua/` and **rename it exactly `SpotterEnginer`**.
-4. Check the final path: `assettocorsa/apps/lua/SpotterEnginer/manifest.ini`.
+2. On this GitHub page, click **Code › Download ZIP**, then extract the archive. It contains a folder named `SpotterEngineer-main`.
+3. Copy that folder into `assettocorsa/apps/lua/` and **rename it exactly `SpotterEngineer`**.
+4. Check the final path: `assettocorsa/apps/lua/SpotterEngineer/manifest.ini`.
 
 The repository download also contains the test bench, the tools and the documentation (`tests/`, `tools/`, `docs/`). The game never loads them, so they can stay. `docs/icon-512.png` (the official 512 × 512 icon) and `docs/banner.jpg` are optional: the game uses `icon.png`.
 
@@ -101,7 +103,7 @@ The repository download also contains the test bench, the tools and the document
 
 1. **Enable the app** among the CSP Lua apps.
 2. **Start an offline session** with AdvancedIA enabled. The link chip in the header of the settings window reads **Connected to AdvancedIA** once both apps run (see [Link states](#link-states)).
-3. **Open SpotterEnginer** from the apps bar to reach its settings. The window is also available in the setup menu.
+3. **Open SpotterEngineer** from the apps bar to reach its settings. The window is also available in the setup menu.
 4. **Language.** The voices and the interface are in French on a first installation. Change **Language** (tab **Radio & voice**, section **Voice and language**, or in the header) to **EN**.
 5. **The three overlays** (Spotter, Engineer, Strategy) are drawn in game by the app, like those of SuperHUD and AdvancedIA. Only the settings window appears in the apps bar. Set them up in the **Overlays** tab (see [Overlays](#overlays)).
 6. **Test the voice** on the **Home** tab (buttons **Spotter** and **Engineer**); the volumes are in the **Radio & voice** tab.
@@ -124,11 +126,11 @@ When a newer version exists, the header button installs it in one click, and the
 
 **Installing.** One click on **Update**, **only when stopped**: at your pit box at a standstill (not driving in the pit lane), or with the game paused. While you drive the button is greyed and the block reads *Available when stopped: pit box or pause*. Then the app:
 
-1. downloads the release's `SpotterEnginer-x.y.z.sha256` digest, then `SpotterEnginer-x.y.z.zip`, from the repository's release downloads only (no other address is followed);
-2. checks the download size, the SHA-256 digest, the package content (every path under `apps/lua/SpotterEnginer/`, no unsafe path, the essential files present, the updater itself included, and every `src/` module the code requires) and the version written in its `manifest.ini`;
+1. downloads the release's `SpotterEngineer-x.y.z.sha256` digest, then `SpotterEngineer-x.y.z.zip`, from the repository's release downloads only (no other address is followed);
+2. checks the download size, the SHA-256 digest, the package content (every path under `apps/lua/SpotterEngineer/`, no unsafe path, the essential files present, the updater itself included, and every `src/` module the code requires) and the version written in its `manifest.ini`;
 3. checks that the package works with the installed AdvancedIA (see [Compatibility guard](#compatibility-guard));
 4. extracts it into its work folder and compares the extracted copy with the package;
-5. on the next frame you are still stopped: backs up the installed files that the update replaces, writes a marker, then copies the new files into the app folder **file by file** (each one written next to its destination, then swapped in at once; `src/` first, `SpotterEnginer.lua` next, `manifest.ini` last), keeps the version you had for **Roll back**, stops the radio, gives the car sound back, saves the settings and **restarts the app** (*x installed. The radio stops and the app restarts.*).
+5. on the next frame you are still stopped: backs up the installed files that the update replaces, writes a marker, then copies the new files into the app folder **file by file** (each one written next to its destination, then swapped in at once; `src/` first, `SpotterEngineer.lua` next, `manifest.ini` last), keeps the version you had for **Roll back**, stops the radio, gives the car sound back, saves the settings and **restarts the app** (*x installed. The radio stops and the app restarts.*).
 
 Until the copy starts, **Cancel** stops everything and the app folder is never touched. If you drive off while the package is ready, the copy is postponed: the package is kept, click **Update** again once stopped.
 
@@ -140,46 +142,46 @@ Until the copy starts, **Cancel** stops everything and the app folder is never t
 - Other messages: *GitHub unreachable: check the connection*, *GitHub refuses for now (request limit): try again in an hour*, *Published release is incomplete on GitHub: try again later*, *Corrupted file: update cancelled, current version kept*.
 - With a CSP version that lacks network or file access, the block reads *Updating from the app is not available here*: update by hand (below).
 
-**Work folder.** Everything is prepared in CSP's state folder, `Documents/Assetto Corsa/cfg/extension/state/SpotterEnginer-update`, never in the app folder (CSP reloads the app as soon as one of its files changes). It holds `next/` (the extracted package), `current/` (the files about to be replaced), `backup/` (the previous version) and small state files (`installing.txt`, `updated.txt`, `boot.txt`, `failed.txt`). Once a new version has started properly, the leftovers are tidied away; `backup/` is kept.
+**Work folder.** Everything is prepared in CSP's state folder, `Documents/Assetto Corsa/cfg/extension/state/SpotterEngineer-update`, never in the app folder (CSP reloads the app as soon as one of its files changes). It holds `next/` (the extracted package), `current/` (the files about to be replaced), `backup/` (the previous version) and small state files (`installing.txt`, `updated.txt`, `boot.txt`, `failed.txt`). Once a new version has started properly, the leftovers are tidied away; `backup/` is kept.
 
-**Strategy duel for AdvancedIA (new in 1.3.4, contract v1).** SpotterEnginer publishes the engineer's undercut / overcut verdict (`ac.store` key `SpotterEnginer.strategy`): `v=1;mode=undercut|overcut|cover|none;rival=<AC car index|-1>;gain=<s, one decimal|-1.0>;lap=<stop lap|0>;stamp=<s>`, 160 characters at most, written when it changes. `undercut`: stop before the car ahead (`gain` is what the early stop wins on it); `cover`: the car behind threatens an undercut; `overcut`: stay out against the car ahead; `none`: no duel, plan not ready, stop more than 4 laps away, pit lane, neutralisation, not a race, or the engineer, the strategy or the **Undercut / overcut** setting switched off. `stamp` is the simulation time in whole seconds, as for the pit plan. AdvancedIA reads it for its display and its log only, never for its AI.
+**Strategy duel for AdvancedIA (new in 1.3.4, contract v1).** SpotterEngineer publishes the engineer's undercut / overcut verdict (`ac.store` key `SpotterEngineer.strategy`): `v=1;mode=undercut|overcut|cover|none;rival=<AC car index|-1>;gain=<s, one decimal|-1.0>;lap=<stop lap|0>;stamp=<s>`, 160 characters at most, written when it changes. `undercut`: stop before the car ahead (`gain` is what the early stop wins on it); `cover`: the car behind threatens an undercut; `overcut`: stay out against the car ahead; `none`: no duel, plan not ready, stop more than 4 laps away, pit lane, neutralisation, not a race, or the engineer, the strategy or the **Undercut / overcut** setting switched off. `stamp` is the simulation time in whole seconds, as for the pit plan. AdvancedIA reads it for its display and its log only, never for its AI.
 
-**Pit plan for AdvancedIA (new in 1.2.0, contract v1).** SpotterEnginer also publishes its pit plan (`ac.store` key `SpotterEnginer.pitplan`): `v=1;lap=<N>;compound=-;state=planned|boxnow|done|none;window=<a>-<b>;boxcalls=0|1;stamp=<s>`, 160 characters at most. From AdvancedIA Beta 1.59, its pit overlay follows this plan: a short notice when the window opens, then *box this lap* only on the planned lap.
+**Pit plan for AdvancedIA (new in 1.2.0, contract v1).** SpotterEngineer also publishes its pit plan (`ac.store` key `SpotterEngineer.pitplan`): `v=1;lap=<N>;compound=-;state=planned|boxnow|done|none;window=<a>-<b>;boxcalls=0|1;stamp=<s>`, 160 characters at most. From AdvancedIA Beta 1.59, its pit overlay follows this plan: a short notice when the window opens, then *box this lap* only on the planned lap.
 - `lap`: the lap in progress when entering the pits (the lap of the engineer's "box", fixed once "box next lap" is said).
 - `compound`: always `-`, since the strategy model does not choose a compound; AdvancedIA's own rules stay the reference for tyres.
 - `state`: `planned` once the plan is ready (never on the estimates of the first laps); `boxnow` on the planned lap from 10 % of the lap, or when a stop under neutralisation is called; `done` after the pit lane, until a next stop is planned; `none` without a ready plan, outside races, or with the engineer or strategy off.
 - `window`: the engineer's pit window; `boxcalls`: whether the "box" calls are said on the radio.
 - `stamp`: simulation time in whole seconds; AdvancedIA treats the plan as frozen when it stops moving for 6 s (paused: neither clock moves) and starts over when it goes back.
 
-**For AdvancedIA's home page.** SpotterEnginer publishes its update state in the game's shared memory (`ac.store` key `SpotterEnginer.update`, contract v1): `v=1;installed=…;latest=…;state=available|uptodate|checking|error|incompatible[;needs=…]`. `needs` gives the AdvancedIA version the package requires.
+**For AdvancedIA's home page.** SpotterEngineer publishes its update state in the game's shared memory (`ac.store` key `SpotterEngineer.update`, contract v1): `v=1;installed=…;latest=…;state=available|uptodate|checking|error|incompatible[;needs=…]`. `needs` gives the AdvancedIA version the package requires.
 
 Do not update the app in the middle of a race by hand either: CSP reloads it, and the states in progress are announced again.
 
 ### Compatibility guard
 
-SpotterEnginer only works with AdvancedIA, so it never installs a version that would leave the spotter mute. Before installing, and before rolling back, it compares the bridge version of the package (`src/bridge_layout.lua`, `L.version`) with the one of the installed AdvancedIA:
+SpotterEngineer only works with AdvancedIA, so it never installs a version that would leave the spotter mute. Before installing, and before rolling back, it compares the bridge version of the package (`src/bridge_layout.lua`, `L.version`) with the one of the installed AdvancedIA:
 
 | Situation | Result |
 |---|---|
 | Same bridge version | Installed. |
 | AdvancedIA older than the package expects | Refused: *Update AdvancedIA first: x expects a newer bridge (AdvancedIA … or later).* |
-| AdvancedIA newer than the package knows | Refused: *The installed AdvancedIA publishes a newer bridge than x knows: wait for a SpotterEnginer version that supports it.* |
-| AdvancedIA not installed | Refused: *AdvancedIA not found: SpotterEnginer only works with it. Install AdvancedIA, then try again.* |
+| AdvancedIA newer than the package knows | Refused: *The installed AdvancedIA publishes a newer bridge than x knows: wait for a SpotterEngineer version that supports it.* |
+| AdvancedIA not installed | Refused: *AdvancedIA not found: SpotterEngineer only works with it. Install AdvancedIA, then try again.* |
 
-The AdvancedIA version a package needs comes from its manifest (`REQUIRES_ADVANCEDIA`, `Beta 1.46` for 1.1.0 to 1.3.8, `Beta 2.0.0` from SpotterEnginer Beta 2.0.0). A bridge change always ships in both apps together: see [COMPATIBILITY.md](COMPATIBILITY.md).
+The AdvancedIA version a package needs comes from its manifest (`REQUIRES_ADVANCEDIA`, `Beta 1.46` for 1.1.0 to 1.3.8, `Beta 2.0.0` for Beta 2.0.0, `Beta 2.0.2` from SpotterEngineer Beta 2.1.1). A bridge change always ships in both apps together: see [COMPATIBILITY.md](COMPATIBILITY.md).
 
 ### Updating by hand
 
 For a first install, or when the in-app update is unavailable:
 
 1. Close Assetto Corsa.
-2. Download `SpotterEnginer-x.y.z.zip` from the [Releases page](https://github.com/VincentChevalier44/SpotterEnginer/releases) (check it with its `.sha256` if you like).
-3. Extract it into the `assettocorsa` root folder, replacing the existing files (the zip contains `apps/lua/SpotterEnginer/…`), or drag it onto Content Manager.
+2. Download `SpotterEngineer-x.y.z.zip` from the [Releases page](https://github.com/VincentChevalier44/SpotterEngineer/releases) (check it with its `.sha256` if you like).
+3. Extract it into the `assettocorsa` root folder, replacing the existing files (the zip contains `apps/lua/SpotterEngineer/…`), or drag it onto Content Manager.
 4. Start the game.
 
 ### What is kept across updates
 
-- **Your settings**: they live in CSP's storage (`ac.storage`), written to `Documents/Assetto Corsa/cfg/extension/state/lua/app/SpotterEnginer.ini`, not in the app folder.
+- **Your settings**: they live in CSP's storage (`ac.storage`), written to `Documents/Assetto Corsa/cfg/extension/state/lua/app/SpotterEngineer.ini`, not in the app folder.
 - **Settings migrate automatically.** When a default changes, values still on the old default follow the new one; a value you set yourself is kept:
   - settings version 2: **DRS by voice** off by default (AdvancedIA already has its beep and its panel);
   - settings version 3: **Master volume** 170 % and **Car sound during the radio** 85 % (from 100 % and 40 %).
@@ -188,17 +190,17 @@ For a first install, or when the in-app update is unavailable:
 
 ### Uninstalling
 
-1. Close Assetto Corsa and delete the folder `assettocorsa/apps/lua/SpotterEnginer`. Without it, AdvancedIA no longer opens its bridge.
+1. Close Assetto Corsa and delete the folder `assettocorsa/apps/lua/SpotterEngineer`. Without it, AdvancedIA no longer opens its bridge.
 2. Optionally, delete what the app left in your Documents folder:
-   - its settings: `Documents/Assetto Corsa/cfg/extension/state/lua/app/SpotterEnginer.ini`;
-   - its session logs: `Documents/Assetto Corsa/logs/SpotterEnginer.log` and `SpotterEnginer.1.log` to `SpotterEnginer.3.log`;
-   - its update work folder: `Documents/Assetto Corsa/cfg/extension/state/SpotterEnginer-update`.
+   - its settings: `Documents/Assetto Corsa/cfg/extension/state/lua/app/SpotterEngineer.ini`;
+   - its session logs: `Documents/Assetto Corsa/logs/SpotterEngineer.log` and `SpotterEngineer.1.log` to `SpotterEngineer.3.log`;
+   - its update work folder: `Documents/Assetto Corsa/cfg/extension/state/SpotterEngineer-update`.
 
 The car sound lowered during the radio is a multiplier on your car that CSP never saves, so there is nothing else to undo.
 
 ### Stopping the app without uninstalling
 
-- **SpotterEnginer on** (switch in the header): off, no call is made and the overlays are idle.
+- **SpotterEngineer on** (switch in the header): off, no call is made and the overlays are idle.
 - The **Spotter**, **Engineer**, **Strategy** and **Overlays** tiles on the **Home** tab switch each role on or off.
 - Each section has its own switch (see [The settings window](#the-settings-window)).
 - **Mute the radio** (tab **Radio & voice**) or **Ctrl+Alt+M** mutes the radio for the session.
@@ -210,11 +212,11 @@ The car sound lowered during the radio is a multiplier on your car that CSP neve
 | One setting | Right-click the setting | Nothing: back to its default |
 | One section | **Reset** in the section header (shown when a setting there is changed) | The other sections |
 | Everything | **Diagnostics › Reset all settings (overlays: this desktop)**, confirmed by a second click | The language, and the overlays of the other desktops |
-| Factory reset | Close the game and delete `SpotterEnginer.ini` (see above) | Nothing |
+| Factory reset | Close the game and delete `SpotterEngineer.ini` (see above) | Nothing |
 
 ## Working with AdvancedIA
 
-SpotterEnginer **only works with AdvancedIA**. It reads the state decided by AdvancedIA's engine through a data bridge between Lua apps (`ac.connect`; format in `src/bridge_layout.lua`, details in [docs/PONT_ACADVANCEDIA.md](docs/PONT_ACADVANCEDIA.md)):
+SpotterEngineer **only works with AdvancedIA**. It reads the state decided by AdvancedIA's engine through a data bridge between Lua apps (`ac.connect`; format in `src/bridge_layout.lua`, details in [docs/PONT_ACADVANCEDIA.md](docs/PONT_ACADVANCEDIA.md)):
 
 - the flags and the driver's panel;
 - neutralisations (SC, VSC, FCY), restarts, standing starts;
@@ -227,7 +229,7 @@ Assetto Corsa's native flags are never used, because AdvancedIA imposes its own.
 
 ### Link states
 
-Until AdvancedIA is connected **and** running, SpotterEnginer says nothing. It only shows the state of the link in its header and on the **Home** tab:
+Until AdvancedIA is connected **and** running, SpotterEngineer says nothing. It only shows the state of the link in its header and on the **Home** tab:
 
 | State | Meaning |
 |---|---|
@@ -242,11 +244,11 @@ Until AdvancedIA is connected **and** running, SpotterEnginer says nothing. It o
 ### AdvancedIA versions and folder
 
 - **The bridge is built into AdvancedIA since Beta 1.46** of AC Advanced AI (its former name), published on GitHub on 4 November 2026 (release v1.46) and offered by its built-in update from 1.45.
-- **The app is called AdvancedIA from Beta 1.49** (GitHub repository VincentChevalier44/AdvancedIA). It installs into `apps/lua/AdvancedIA/` instead of `apps/lua/ACAdvancedIA/`. SpotterEnginer looks for the new folder first, then the old one for installations not yet migrated; only the `manifest.ini` counts (an empty old folder is ignored).
+- **The app is called AdvancedIA from Beta 1.49** (GitHub repository VincentChevalier44/AdvancedIA). It installs into `apps/lua/AdvancedIA/` instead of `apps/lua/ACAdvancedIA/`. SpotterEngineer looks for the new folder first, then the old one for installations not yet migrated; only the `manifest.ini` counts (an empty old folder is ignored).
 - **The bridge does not change with the rename**: same format, same `ac.connect` keys (`ACAdvancedIA.Bridge.Hello`, `ACAdvancedIA.Bridge.Data.v2` since Beta 2.0.0).
-- **AdvancedIA only opens the bridge when `apps/lua/SpotterEnginer/manifest.ini` exists.** Its log (`Documents/Assetto Corsa/logs/AdvancedIA.log`, `ACAdvancedIA.log` before 1.49) confirms it with the line `pont des apps compagnes: ouvert (version 2)` (*companion app bridge: open*).
-- With an AdvancedIA version without the bridge, SpotterEnginer shows **AdvancedIA without bridge** and stays silent.
-- Since AdvancedIA does nothing online, SpotterEnginer is for offline play only.
+- **AdvancedIA only opens the bridge when `apps/lua/SpotterEngineer/manifest.ini` exists.** Its log (`Documents/Assetto Corsa/logs/AdvancedIA.log`, `ACAdvancedIA.log` before 1.49) confirms it with the line `pont des apps compagnes: ouvert (version 2)` (*companion app bridge: open*).
+- With an AdvancedIA version without the bridge, SpotterEngineer shows **AdvancedIA without bridge** and stays silent.
+- Since AdvancedIA does nothing online, SpotterEngineer is for offline play only.
 
 ## Features
 
@@ -393,7 +395,7 @@ The 32 kinds of AdvancedIA announcement and the 40 states of its panel were revi
 - **Wind into braking**: tailwind or headwind at the start of a big braking zone.
 - **End-of-race debrief** (new in 1.2.0, section **End-of-race debrief**): as soon as you cross the finish line of a race (even while AdvancedIA pauses its bridge for the finish) the spotter says *"Chequered flag, race over! You're P2."* Five seconds later the engineer sums it up in one transmission:
   - places gained or lost since the start (*"3 places gained since the start."*), or *"Same place as on the grid."*;
-  - overtakes on track (*"7 overtakes on track."*), counted by SpotterEnginer: a car passed for position, never a backmarker being lapped, never a place gained in the pits;
+  - overtakes on track (*"7 overtakes on track."*), counted by SpotterEngineer: a car passed for position, never a backmarker being lapped, never a place gained in the pits;
   - *"And the fastest lap of the race!"* when it is yours;
   - a verdict: win, podium, top 5, top 10, good comeback (3 places or more gained), tough race (3 places or more lost), keep improving, not classified, disqualified.
 
@@ -498,7 +500,7 @@ So that you are never flooded with messages (tab **Radio & voice**, section **Me
 
 ### Voices and radio
 
-The clips are in `vox/FR` and `vox/EN`: 251 calls (23 of them alternative wordings), 100 numbers (0 to 99; 100 to 999 are said with the *"hundred"* clip), 100 durations (0.0 to 9.9 s) and 61 positions (*"You're P1."* to *"You're P61."*) per language. **Two voices** (Beta 2.0.0): the engineer keeps the male voice (Henri in French, Guy in English); the spotter speaks with a female voice (Denise in French, Jenny in English). The spotter's own 112 calls are recorded in the female voice in place; the 41 calls both roles use, and the numbers, durations and positions, also have a female copy in `vox/FR/F` and `vox/EN/F`. 1628 files in all. Numbers 114 and 193 are unused. These numbers and bounds are defined once, in `src/catalog.lua`. The **Home** tab shows how many are present.
+The clips are in `vox/FR` and `vox/EN`: 267 calls (23 of them alternative wordings), 100 numbers (0 to 99; 100 to 999 are said with the *"hundred"* clip), 100 durations (0.0 to 9.9 s) and 61 positions (*"You're P1."* to *"You're P61."*) per language. **Two voices** (Beta 2.0.0): the engineer keeps the male voice (Henri in French, Guy in English); the spotter speaks with a female voice (Denise in French, Jenny in English). The spotter's own 120 calls are recorded in the female voice in place; the 41 calls both roles use, and the numbers, durations and positions, also have a female copy in `vox/FR/F` and `vox/EN/F`. 1660 files in all. Numbers 114 and 193 are unused. These numbers and bounds are defined once, in `src/catalog.lua`. The **Home** tab shows how many are present.
 
 - **Agreement**: the unit follows the value said, singular below 2 in French (« 0,5 tour », « 1,2 seconde ») and for 1 only in English ("1 lap", "0.5 laps"); "one minute" has its own clip (feminine in French). The text written on the radio is built from the same clips as the voice: it says exactly what is heard ("1 lap", never "1.0 laps").
 - **Punctuation**: when a sentence starts with a capital letter after a number or another sentence, a full stop separates them in writing (*"Gap ahead: 1.2 seconds. You're closing."*).
@@ -522,7 +524,7 @@ The clips are in `vox/FR` and `vox/EN`: 251 calls (23 of them alternative wordin
 
 ### With SetupLab (optional)
 
-SpotterEnginer needs AdvancedIA only. When [SetupLab](https://github.com/VincentChevalier44/SetupLab) is also installed (`apps/lua/SetupLab`), the engineer relays it; without SetupLab nothing of this appears, not even its settings section.
+SpotterEngineer needs AdvancedIA only. When [SetupLab](https://github.com/VincentChevalier44/SetupLab) is also installed (`apps/lua/SetupLab`), the engineer relays it; without SetupLab nothing of this appears, not even its settings section.
 
 - **Trial laps** (practice and qualifying only, never in a race): SetupLab's own verdict on the version being tried, against the version it started from: *"The new setup is faster, by 0.3 seconds. Main change: aero."*, *"slower"*, or *"No clear difference with the new setup."* Nothing while SetupLab still waits for laps. The exact gap is written on the radio. The main change is the group of settings SetupLab expects the most from, not a measured cause. In qualifying the verdict waits for the pit entry, never on a flying lap.
 - **New version ready**: *"New setup version ready, try it in the pits."*, once per version.
@@ -531,7 +533,7 @@ SpotterEnginer needs AdvancedIA only. When [SetupLab](https://github.com/Vincent
 
 ### With SuperHUD (optional)
 
-When SuperHUD 1.9.6 or later is installed (`apps/lua/SuperHUD`), SpotterEnginer reads its `SuperHUD.state` key. Without SuperHUD, nothing of this appears, not even its settings.
+When SuperHUD 1.9.6 or later is installed (`apps/lua/SuperHUD`), SpotterEngineer reads its `SuperHUD.state` key. Without SuperHUD, nothing of this appears, not even its settings.
 
 - **Sound radar**: while SuperHUD's radar sound alerts are on, the spotter no longer says car left, right, three wide or clear, so the alerts are not doubled. It takes over again as soon as SuperHUD turns them off or stops (3 s). Setting **Leave side by side to SuperHUD radar** (on), Spotter tab, group **Traffic and position**.
 - **No overlap**: overlays left in automatic position move up or down to the nearest free spot so they do not cover the blocks SuperHUD shows on the same desktop. A block hidden for a moment keeps its place for 2 minutes, so the overlays do not jump. An overlay you placed yourself never moves. Setting **Avoid SuperHUD blocks** (on), Overlays tab.
@@ -548,7 +550,7 @@ Defaults as shipped; ranges in brackets.
 
 | Setting | Default | Notes |
 |---|---|---|
-| SpotterEnginer on | on | Off: no calls, overlays idle |
+| SpotterEngineer on | on | Off: no calls, overlays idle |
 | Language | FR | FR or EN, voice and interface |
 | Check for updates at launch | on | UPDATE block; on GitHub, once per launch |
 | Spotter on, Engineer on, Pit strategy | on | The role tiles |
@@ -582,7 +584,7 @@ Role switch **Engineer on** (pace, fuel, tyres, strategy). Groups **Race**, **Ca
 
 | Section | Settings (default) |
 |---|---|
-| Pace and calls (on) | Pace every … laps (3) [1–10], Push / hold (on), Position and advice (on), Live position (on) |
+| Pace and calls (on) | Pace every … laps (3) [1–10], Push / hold (on), Position and advice (on), Live position (on), Laps and minutes left (on) |
 | End-of-race debrief (on) | — |
 | Fuel (on) | Reserve laps (1) [0–3], Fuel margin (L) (2.0) [0–5], Fuel effect (s/L) (0.03) [0.005–0.08] |
 | Driving advice (on) | Reported loss (s) (0.15) [0.05–0.6], per mini sector over 3 laps |
@@ -692,7 +694,7 @@ Everything was tested outside the game, on a simulated CSP host. The in-app upda
 
 ## Session log
 
-SpotterEnginer writes its session log to `Documents/Assetto Corsa/logs/SpotterEnginer.log`, like AdvancedIA: one file per game launch, the three previous ones kept (`SpotterEnginer.1.log` to `.3.log`), 2 MB at most per launch. Each line gives the date and time, the session time and the player's lap. The log lines are written in French. It records:
+SpotterEngineer writes its session log to `Documents/Assetto Corsa/logs/SpotterEngineer.log`, like AdvancedIA: one file per game launch, the three previous ones kept (`SpotterEngineer.1.log` to `.3.log`), 2 MB at most per launch. Each line gives the date and time, the session time and the player's lap. The log lines are written in French. It records:
 
 - the launch (version, main settings, number of clips, AdvancedIA and the bridge);
 - every change of the link with AdvancedIA, and when the spotter and the engineer become active or go on standby (pause, replay, link);
@@ -705,7 +707,7 @@ SpotterEnginer writes its session log to `Documents/Assetto Corsa/logs/SpotterEn
 
 ## Troubleshooting
 
-**SpotterEnginer says nothing.** Look at the link chip in the header (see [Link states](#link-states)). It must read **Connected to AdvancedIA**. Also check that **SpotterEnginer on**, the role and the section concerned are switched on, and that the radio is not muted (**Radio muted** chip, **Ctrl+Alt+M**).
+**SpotterEngineer says nothing.** Look at the link chip in the header (see [Link states](#link-states)). It must read **Connected to AdvancedIA**. Also check that **SpotterEngineer on**, the role and the section concerned are switched on, and that the radio is not muted (**Radio muted** chip, **Ctrl+Alt+M**).
 
 **The overlays do not appear.** A locked overlay only shows while AdvancedIA is connected. Check **Overlays shown** and **Show the overlay** for the current desktop (each desktop has its own overlays; a desktop never set up is empty), and **Ctrl+Alt+J**.
 
@@ -713,7 +715,7 @@ SpotterEnginer writes its session log to `Documents/Assetto Corsa/logs/SpotterEn
 
 **Left and right are swapped.** Tick **Swap left and right** (section **Side by side**).
 
-**The update is refused.** Read the message in the UPDATE block (Diagnostics tab): *Update AdvancedIA first* means the new SpotterEnginer needs a newer AdvancedIA (see [Compatibility guard](#compatibility-guard)).
+**The update is refused.** Read the message in the UPDATE block (Diagnostics tab): *Update AdvancedIA first* means the new SpotterEngineer needs a newer AdvancedIA (see [Compatibility guard](#compatibility-guard)).
 
 **A clip is missing.** The call is written on the overlay radio instead. The **Home** tab shows the clips present; reinstall the version (zip from the Releases page). From the repository, `python tools/generer_voix.py` makes the missing ones.
 
@@ -729,7 +731,7 @@ The runner also checks that `src/bridge_layout.lua` is identical in both apps an
 
 `python tools/apercu_ui.py [folder]` (by default a folder in the temporary directory: nothing is written into the app) draws every page of the settings window and the three overlays as PNG images, in French and in English. It records the app's real drawing operations, then replays them with the bundled fonts.
 
-`python tools/package.py [output folder]` builds the release package `SpotterEnginer-<version>.zip` and its `SpotterEnginer-<version>.sha256` (in the system temporary folder by default: nothing is written into the app folder, which CSP reloads in game). The package holds only what the game loads plus the user notes, under `apps/lua/SpotterEnginer/`; it is then checked with the real `src/update.lua`, as the app will check it (safe paths, essential files, required modules, manifest version, file name, size, bridge compatible with the installed AdvancedIA).
+`python tools/package.py [output folder]` builds the release package `SpotterEngineer-<version>.zip` and its `SpotterEngineer-<version>.sha256` (in the system temporary folder by default: nothing is written into the app folder, which CSP reloads in game). The package holds only what the game loads plus the user notes, under `apps/lua/SpotterEngineer/`; it is then checked with the real `src/update.lua`, as the app will check it (safe paths, essential files, required modules, manifest version, file name, size, bridge compatible with the installed AdvancedIA).
 
 `python tools/generer_voix.py` generates the voice clips (see [Voices and radio](#voices-and-radio)).
 
@@ -737,7 +739,7 @@ Never change the app's files while the game is running: CSP reloads the app at o
 
 ## Support
 
-SpotterEnginer is a passion project, made in my spare time. It is free and will stay free, with every feature for everyone. If it makes your races more fun and you would like to help a little, you can support me on Patreon: **[WHK Racing](https://www.patreon.com/cw/WHKRacing)**. Reporting problems, sharing ideas or simply telling me you use it helps a lot too.
+SpotterEngineer is a passion project, made in my spare time. It is free and will stay free, with every feature for everyone. If it makes your races more fun and you would like to help a little, you can support me on Patreon: **[WHK Racing](https://www.patreon.com/cw/WHKRacing)**. Reporting problems, sharing ideas or simply telling me you use it helps a lot too.
 
 ## Changelog, license and credits
 

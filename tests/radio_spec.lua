@@ -433,4 +433,14 @@ function T.ai_mistake_during_stop_not_said_later()
  at(ctx,4); Spotter.step(s,ctx)
  check(queued(v,'mistake'),'a new mistake ahead is said')
 end
+-- Identifiants et numéros de clips uniques (un doublon remplacerait l'autre clip en silence).
+function T.clip_ids_unique()
+ local src=io.open('src/catalog.lua','r'); local text=src:read('*a'); src:close()
+ local seen,num,dup={}, {}, {}
+ for id,n in text:gmatch("%s{'([%w_]+)',(%d+),") do
+  if seen[id] then dup[#dup+1]=id end; seen[id]=true
+  if num[n] then dup[#dup+1]='#'..n end; num[n]=true
+ end
+ check(#dup==0,'unique clip ids and numbers: '..table.concat(dup,' '))
+end
 return T

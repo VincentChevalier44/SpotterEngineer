@@ -17,7 +17,7 @@ M.LW,M.LH=150,28
 M.PW=380
 M.TOP=10
 M.CLICK=4
-M.ids={launcher='SpotterEnginer_edit',panel='SpotterEnginer_editpanel'}
+M.ids={launcher='SpotterEngineer_edit',panel='SpotterEngineer_editpanel'}
 function M.new()
  return {moveAt=-1e9,mx=nil,my=nil,h=320,drag=nil,moved=0,x=0,y=0,
   pos=vec2(0,0),size=vec2(M.LW,M.LH),ppos=vec2(0,0),psize=vec2(M.PW,320)}

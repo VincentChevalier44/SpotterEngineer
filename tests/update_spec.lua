@@ -14,10 +14,10 @@ local SHA=string.rep('ab',32)
 local SIZE=1000000
 local ZIPDATA=string.rep('z',SIZE)
 local function release(over)
- local r={tag_name='v1.34',name='1.34',draft=false,prerelease=false,html_url='https://github.com/VincentChevalier44/SpotterEnginer/releases/tag/v1.34',
+ local r={tag_name='v1.34',name='1.34',draft=false,prerelease=false,html_url='https://github.com/VincentChevalier44/SpotterEngineer/releases/tag/v1.34',
   published_at='2026-11-05T10:00:00Z',body='## 1.34\r\n\r\n- **Panneaux** lumineux\n- `DRS`\n',
-  assets={{name='SpotterEnginer-1.34.zip',size=SIZE,browser_download_url=Up.download..'v1.34/SpotterEnginer-1.34.zip'},
-   {name='SpotterEnginer-1.34.sha256',size=100,browser_download_url=Up.download..'v1.34/SpotterEnginer-1.34.sha256'}}}
+  assets={{name='SpotterEngineer-1.34.zip',size=SIZE,browser_download_url=Up.download..'v1.34/SpotterEngineer-1.34.zip'},
+   {name='SpotterEngineer-1.34.sha256',size=100,browser_download_url=Up.download..'v1.34/SpotterEngineer-1.34.sha256'}}}
  for k,v in pairs(over or {}) do r[k]=v end
  return r
 end
@@ -35,7 +35,7 @@ local function port(o)
   log('get '..url)
   local function answer()
    if url==Up.api then cb(o.apiErr,o.apiStatus or 200,'api')
-   elseif url:find('%.sha256$') then cb(o.shaErr,o.shaStatus or 200,o.shaText or (SHA..'  SpotterEnginer-1.34.zip\n'))
+   elseif url:find('%.sha256$') then cb(o.shaErr,o.shaStatus or 200,o.shaText or (SHA..'  SpotterEngineer-1.34.zip\n'))
    else cb(o.zipErr,o.zipStatus or 200,o.zipData or ZIPDATA) end
   end
   if p.hold then p.pending=p.pending or {}; p.pending[#p.pending+1]=answer else answer() end
@@ -101,7 +101,7 @@ local function ordered(calls,list) local last=0; for _,x in ipairs(list) do loca
 
 tests.UPDATE_VERSIONS=function()
  assert(table.concat(Up.version('1.33'),'.')=='1.33' and table.concat(Up.version('v1.33.2'),'.')=='1.33.2')
- assert(table.concat(Up.version('SpotterEnginer-1.34.zip'),'.')=='1.34' and Up.version('Beta')==nil and Up.version(nil)==nil)
+ assert(table.concat(Up.version('SpotterEngineer-1.34.zip'),'.')=='1.34' and Up.version('Beta')==nil and Up.version(nil)==nil)
  assert(Up.newer('1.34','1.33') and Up.newer('v1.33.1','1.33') and Up.newer('1.40','1.39'))
  assert(not Up.newer('1.33','1.33') and not Up.newer('1.32','1.33') and not Up.newer('1.33','1.33.0'))
  assert(Up.newer('2.0','1.99') and not Up.newer('x','1.0') and not Up.newer('1.0','x'))
@@ -115,13 +115,13 @@ tests.UPDATE_RELEASE_PARSE=function()
  assert(not Up.release(release({draft=true})) and not Up.release(release({prerelease=true})) and not Up.release(release({tag_name='latest'})))
  local a=release(); table.remove(a.assets,2); assert(not Up.release(a))
  a=release(); table.remove(a.assets,1); assert(not Up.release(a))
- a=release(); a.assets[1].name='SpotterEnginer-1.35.zip'; assert(not Up.release(a))
+ a=release(); a.assets[1].name='SpotterEngineer-1.35.zip'; assert(not Up.release(a))
  -- Les paquets d'AdvancedIA (même module, autre dépôt) ne sont jamais retenus.
  a=release(); a.assets[1].name='AdvancedIA-Beta-1.34.zip'; assert(not Up.release(a))
- a=release(); a.assets[1].browser_download_url='https://github.com/VincentChevalier44/AdvancedIA/releases/download/v1.34/SpotterEnginer-1.34.zip'; assert(not Up.release(a))
- assert(Up.prefix=='apps/lua/SpotterEnginer/' and Up.required[2]=='SpotterEnginer.lua' and Up.repo=='VincentChevalier44/SpotterEnginer')
- a=release(); a.assets[1].browser_download_url='https://example.com/SpotterEnginer-1.34.zip'; assert(not Up.release(a))
- a=release(); a.assets[2].browser_download_url='https://example.com/SpotterEnginer-1.34.sha256'; assert(not Up.release(a))
+ a=release(); a.assets[1].browser_download_url='https://github.com/VincentChevalier44/AdvancedIA/releases/download/v1.34/SpotterEngineer-1.34.zip'; assert(not Up.release(a))
+ assert(Up.prefix=='apps/lua/SpotterEngineer/' and Up.required[2]=='SpotterEngineer.lua' and Up.repo=='VincentChevalier44/SpotterEngineer')
+ a=release(); a.assets[1].browser_download_url='https://example.com/SpotterEngineer-1.34.zip'; assert(not Up.release(a))
+ a=release(); a.assets[2].browser_download_url='https://example.com/SpotterEngineer-1.34.sha256'; assert(not Up.release(a))
  a=release(); a.assets[1].size=0; assert(not Up.release(a))
  a=release(); a.assets[1].size=Up.sizeMax+1; assert(not Up.release(a))
  a=release(); a.html_url='https://evil.example/'; assert(Up.release(a).page==Up.page)
@@ -134,14 +134,14 @@ tests.UPDATE_RELEASE_PARSE=function()
  assert(Up.cut('aé',2)=='a' and Up.cut('aé',3)=='aé' and Up.cut('abc',5)=='abc')
 end
 tests.UPDATE_DIGEST_AND_CONTENT=function()
- assert(Up.digest(SHA..'  SpotterEnginer-1.34.zip','SpotterEnginer-1.34.zip')==SHA)
- assert(Up.digest(SHA:upper()..' *SpotterEnginer-1.34.zip\r\n','SpotterEnginer-1.34.zip')==SHA)
- assert(not Up.digest(SHA..'  autre.zip','SpotterEnginer-1.34.zip') and not Up.digest('abc  SpotterEnginer-1.34.zip','SpotterEnginer-1.34.zip'))
+ assert(Up.digest(SHA..'  SpotterEngineer-1.34.zip','SpotterEngineer-1.34.zip')==SHA)
+ assert(Up.digest(SHA:upper()..' *SpotterEngineer-1.34.zip\r\n','SpotterEngineer-1.34.zip')==SHA)
+ assert(not Up.digest(SHA..'  autre.zip','SpotterEngineer-1.34.zip') and not Up.digest('abc  SpotterEngineer-1.34.zip','SpotterEngineer-1.34.zip'))
  assert(not Up.digest(nil,'x'))
  assert(Up.content(entries()))
  local function with(x) local t=entries(); t[#t+1]=x; return t end
  assert(not Up.content(with('apps/lua/Autre/x.lua')) and not Up.content(with(Up.prefix..'../../evil.lua')) and not Up.content(with(Up.prefix..'src/../../x')))
- assert(not Up.content(with(Up.prefix..'src\\a.lua')) and not Up.content(with('C:/evil')) and not Up.content(with('/apps/lua/SpotterEnginer/x')))
+ assert(not Up.content(with(Up.prefix..'src\\a.lua')) and not Up.content(with('C:/evil')) and not Up.content(with('/apps/lua/SpotterEngineer/x')))
  assert(not Up.content(with(Up.prefix..'src//a.lua')) and not Up.content(with(Up.prefix..'./a.lua')))
  -- Entrées de dossier et noms qui contiennent seulement des points : acceptés.
  assert(Up.content(with(Up.prefix..'fonts/')) and Up.content(with(Up.prefix..'docs/notes..md')))
@@ -452,35 +452,35 @@ tests.UPDATE_REMOTE_END_TO_END=function()
  onFake(nil,function(f)
   f.async=true
   -- Version précédente plus ancienne déjà gardée : remplacée d'un bloc, rien n'en reste.
-  f.files[f.work..'/backup/SpotterEnginer.lua']='main 1.32'; f.files[f.work..'/backup/manifest.ini']='VERSION=1.32'
-  f.files[f.work..'/backup/.files']='SpotterEnginer.lua\nmanifest.ini'
+  f.files[f.work..'/backup/SpotterEngineer.lua']='main 1.32'; f.files[f.work..'/backup/manifest.ini']='VERSION=1.32'
+  f.files[f.work..'/backup/.files']='SpotterEngineer.lua\nmanifest.ini'
  end,function(f,p,u)
   -- Sauvegarde d'avant le repère .over, sans compte rendu qui la relie à la version installée : jamais proposée.
   assert(p.ready and p.app==f.root and p.installedVersion()=='1.33' and p.work==f.work and u.previous==nil)
   Up.check(u,p,0); f.flush(); assert(u.phase=='available' and u.release.notes[3]=='- Nouveau point')
   f.watch(); assert(Up.install(u,p,true)); f.flush()
   assert(u.phase=='ready','install: '..tostring(u.phase)..' '..tostring(u.error)..' '..tostring(u.detail))
-  assert(f.find('redirect https://release-assets.githubusercontent.com/SpotterEnginer-1.34.zip'),'download redirected')
+  assert(f.find('redirect https://release-assets.githubusercontent.com/SpotterEngineer-1.34.zip'),'download redirected')
   local files=f.files
   -- Rien n'a encore changé dans le dossier de l'app ; paquet extrait, comparé et listé dans le travail.
-  assert(files[f.root..'/SpotterEnginer.lua']=='main 1.33' and f.reloads==0)
-  assert(files[f.work..'/next/'..Fake.prefix..'SpotterEnginer.lua']=='main 1.34' and files[f.work..'/next/'..Fake.prefix..'.files']:find('src/new.lua',1,true))
-  assert(files[f.work..'/current/SpotterEnginer.lua']==nil,'nothing saved before the final copy')
+  assert(files[f.root..'/SpotterEngineer.lua']=='main 1.33' and f.reloads==0)
+  assert(files[f.work..'/next/'..Fake.prefix..'SpotterEngineer.lua']=='main 1.34' and files[f.work..'/next/'..Fake.prefix..'.files']:find('src/new.lua',1,true))
+  assert(files[f.work..'/current/SpotterEngineer.lua']==nil,'nothing saved before the final copy')
   Up.tick(u,p,true,10)
   assert(u.phase=='restarting','tick: '..tostring(u.phase)..' '..tostring(u.detail))
   -- Sauvegarde : seulement les fichiers que la copie remplace (jamais le reste du dossier de l'app).
-  assert(files[f.work..'/backup/SpotterEnginer.lua']=='main 1.33' and files[f.work..'/backup/tracks/spa.lua']==nil and files[f.work..'/backup/backup/old.txt']==nil)
+  assert(files[f.work..'/backup/SpotterEngineer.lua']=='main 1.33' and files[f.work..'/backup/tracks/spa.lua']==nil and files[f.work..'/backup/backup/old.txt']==nil)
   assert(files[f.work..'/backup/.over']=='1.34','previous version kept with the version it was taken under')
   -- Copie finale : fichiers changés, nouveau fichier, identiques jamais réécrits, manifeste en dernier, aucun rechargement,
   -- chaque fichier copié à côté puis mis en place, surveillance rétablie à la fin.
-  assert(files[f.root..'/SpotterEnginer.lua']=='main 1.34' and files[f.root..'/src/ui.lua']=='ui 1.34' and files[f.root..'/src/new.lua']=='new 1.34')
+  assert(files[f.root..'/SpotterEngineer.lua']=='main 1.34' and files[f.root..'/src/ui.lua']=='ui 1.34' and files[f.root..'/src/new.lua']=='new 1.34')
   assert(files[f.root..'/sounds/beep.wav']=='wav' and not f.find('copy sounds/beep.wav.new') and files[f.root..'/tracks/spa.lua']=='zones')
-  assert(f.last('move ')==f.find('move manifest.ini') and f.find('move src/ui.lua')<f.find('move SpotterEnginer.lua') and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.34')
+  assert(f.last('move ')==f.find('move manifest.ini') and f.find('move src/ui.lua')<f.find('move SpotterEngineer.lua') and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.34')
   assert(files[f.root..'/src/ui.lua.new']==nil and files[f.root..'/manifest.ini.new']==nil,'no temporary file left')
   assert(f.reloads==0,'live reloads: '..f.reloads)
   assert(f.last('pause ')==f.last('pause false') and f.last('pause false')>f.find('move manifest.ini'),'file watching resumed after the copy')
   -- Version précédente promue d'un bloc, repère levé, compte rendu écrit, démarrage surveillé ; radio arrêtée, son rendu, puis redémarrage.
-  assert(f.find('movedir state:SpotterEnginer-update/backup'),'promoted by renaming the folder')
+  assert(f.find('movedir state:SpotterEngineer-update/backup'),'promoted by renaming the folder')
   for path in pairs(files) do assert(not path:find('/backup.old/',1,true),'older backup cleared: '..path) end
   assert(files[f.work..'/installing.txt']==nil and files[f.work..'/updated.txt']=='update 1.33 -> 1.34' and files[f.work..'/boot.txt']=='1.34\n0\n1.33')
   assert(f.order[1]=='release' and f.order[2]=='restartApp' and #f.order==2 and f.restarts==1)
@@ -489,7 +489,7 @@ tests.UPDATE_REMOTE_END_TO_END=function()
   local u2=Up.new('1.34'); Up.start(u2,p2,Up.recover(p2)); assert(u2.updated.kind=='update' and u2.previous=='1.33' and files[f.work..'/updated.txt']==nil)
   assert(files[f.work..'/boot.txt']=='1.34\n1\n1.33','boot counted'); p2.bootOk(); assert(files[f.work..'/boot.txt']==nil,'boot confirmed')
   f.watch(); assert(Up.rollback(u2,p2,true) and u2.phase=='rollbackReady'); Up.tick(u2,p2,true,0); assert(u2.phase=='restarting')
-  assert(files[f.root..'/SpotterEnginer.lua']=='main 1.33' and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.33' and f.reloads==0)
+  assert(files[f.root..'/SpotterEngineer.lua']=='main 1.33' and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.33' and f.reloads==0)
   assert(files[f.work..'/updated.txt']=='rollback 1.34 -> 1.33' and files[f.work..'/installing.txt']==nil and f.restarts==2)
   -- Page de la version : seulement une adresse https.
   p.open(u.release.page); p.open('file:///c:/x'); assert(#f.opened==1 and f.opened[1]==u.release.page)
@@ -504,19 +504,19 @@ tests.UPDATE_REMOTE_BOOT_WATCH=function()
   for launch=1,2 do local q=Remote.new(function() end); assert(Up.recover(q)==nil,'launch '..launch) end
   assert(files[f.work..'/boot.txt']=='1.34\n2\n1.33')
   local q=Remote.new(function() end); local r=Up.recover(q)
-  assert(r and r.outcome=='autorollback' and r.restart and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.33' and files[f.root..'/SpotterEnginer.lua']=='main 1.33')
+  assert(r and r.outcome=='autorollback' and r.restart and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.33' and files[f.root..'/SpotterEngineer.lua']=='main 1.33')
   assert(files[f.work..'/boot.txt']==nil and files[f.work..'/installing.txt']==nil and files[f.work..'/updated.txt']=='rollback 1.34 -> 1.33 auto')
  end)
 end
 -- Échecs du vrai port : la version installée reste intacte (ou remise en place aussitôt), sans repère qui traîne.
 tests.UPDATE_REMOTE_FAILURES=function()
- local function intact(f) local files=f.files; return files[f.root..'/SpotterEnginer.lua']=='main 1.33' and files[f.root..'/src/ui.lua']=='ui 1.33' and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.33' and files[f.work..'/installing.txt']==nil end
+ local function intact(f) local files=f.files; return files[f.root..'/SpotterEngineer.lua']=='main 1.33' and files[f.root..'/src/ui.lua']=='ui 1.33' and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.33' and files[f.work..'/installing.txt']==nil end
  local function run(options,setup,check)
   onFake(options,setup,function(f,p,u) Up.check(u,p,0); f.flush(); Up.install(u,p,true); f.flush(); Up.tick(u,p,true,10); check(f,u) end)
  end
- run({actual=string.rep('cd',32)},nil,function(f,u) assert(u.error=='integrity' and intact(f) and f.files[f.work..'/current/SpotterEnginer.lua']==nil) end)
+ run({actual=string.rep('cd',32)},nil,function(f,u) assert(u.error=='integrity' and intact(f) and f.files[f.work..'/current/SpotterEngineer.lua']==nil) end)
  run({size=999},nil,function(f,u) assert(u.error=='integrity' and u.detail:find('taille',1,true) and intact(f)) end)
- run({entries={['apps/lua/SpotterEnginer/../../evil.lua']='x'}},nil,function(f,u) assert(u.error=='content' and intact(f)) end)
+ run({entries={['apps/lua/SpotterEngineer/../../evil.lua']='x'}},nil,function(f,u) assert(u.error=='content' and intact(f)) end)
  run({entries={[Fake.prefix..'src/remote.lua']=false}},nil,function(f,u) assert(u.error=='content' and intact(f)) end)
  run({entries={[Fake.prefix..'src/ui.lua']="local G=require('src/groups')"}},nil,function(f,u) assert(u.error=='content' and u.detail=='module absent : src/groups' and intact(f)) end)
  run(nil,function(f) f.corruptExtract=Fake.prefix..'src/ui.lua' end,function(f,u) assert(u.error=='write' and u.detail:find('different du paquet : src/ui.lua',1,true) and intact(f)) end)
@@ -525,10 +525,10 @@ tests.UPDATE_REMOTE_FAILURES=function()
  -- Fichier de l'app ouvert (verrouillé) pendant la copie finale : remise en place aussitôt, version conservée, aucun
  -- fichier temporaire laissé.
  run(nil,function(f) f.locked[f.root..'/src/ui.lua']=true end,function(f,u)
-  assert(u.error=='write' and u.detail=='src/ui.lua' and f.files[f.root..'/SpotterEnginer.lua']=='main 1.33' and Up.manifestVersion(f.files[f.root..'/manifest.ini'])=='1.33',
-   'locked: '..u.phase..' '..u.error..' '..u.detail..' '..tostring(f.files[f.root..'/SpotterEnginer.lua']))
+  assert(u.error=='write' and u.detail=='src/ui.lua' and f.files[f.root..'/SpotterEngineer.lua']=='main 1.33' and Up.manifestVersion(f.files[f.root..'/manifest.ini'])=='1.33',
+   'locked: '..u.phase..' '..u.error..' '..u.detail..' '..tostring(f.files[f.root..'/SpotterEngineer.lua']))
   assert(f.files[f.work..'/installing.txt']==nil,'marker'); assert(f.restarts==0,'restarts')
-  assert(f.files[f.work..'/backup/SpotterEnginer.lua']==nil,'backup'); assert(f.files[f.root..'/src/ui.lua.new']==nil,'tmp')
+  assert(f.files[f.work..'/backup/SpotterEngineer.lua']==nil,'backup'); assert(f.files[f.root..'/src/ui.lua.new']==nil,'tmp')
  end)
  -- Fichier de l'app illisible (copie de sauvegarde refusée) : rien n'est copié dans l'app.
  run(nil,function(f) f.unreadable[f.root..'/src/ui.lua']=true end,function(f,u) assert(u.error=='write' and u.detail=='sauvegarde : src/ui.lua' and intact(f)) end)
@@ -539,7 +539,7 @@ tests.UPDATE_REMOTE_FAILURES=function()
  -- Surveillance de CSP qui reprend seule pendant une longue copie : réaffirmée, aucun rechargement.
  run(nil,function(f) f.watch(); f.autoResume=6 end,function(f,u) assert(u.phase=='restarting' and f.reloads==0,'reloads '..f.reloads..' '..tostring(u.detail)) end)
  -- Renommage de dossier refusé : version précédente gardée par copie vérifiée.
- run(nil,function(f) f.failDirMove=true end,function(f,u) assert(u.phase=='restarting' and f.files[f.work..'/backup/SpotterEnginer.lua']=='main 1.33' and f.files[f.work..'/current/SpotterEnginer.lua']==nil) end)
+ run(nil,function(f) f.failDirMove=true end,function(f,u) assert(u.phase=='restarting' and f.files[f.work..'/backup/SpotterEngineer.lua']=='main 1.33' and f.files[f.work..'/current/SpotterEngineer.lua']==nil) end)
 end
 -- Reprise au chargement par le vrai port : copie interrompue (fichiers mêlés, manifeste encore ancien) terminée depuis
 -- le paquet extrait ; sans lui, version de départ remise en place ; rien à reprendre ensuite. Promotion rejouée sans
@@ -548,29 +548,29 @@ tests.UPDATE_REMOTE_RECOVERY=function()
  local function source(f,root,map) local names={}; for k,val in pairs(map) do f.files[root..'/'..k]=val; names[#names+1]=k end; f.files[root..'/.files']=table.concat(names,'\n') end
  onFake(nil,nil,function(f,p)
   local files=f.files
-  source(f,f.work..'/next/'..Fake.prefix:gsub('/$',''),{['manifest.ini']='VERSION=1.34',['SpotterEnginer.lua']='main 1.34',['src/update.lua']='update 1.34',['src/remote.lua']='remote 1.34',['src/ui.lua']='ui 1.34'})
-  source(f,f.work..'/current',{['manifest.ini']='VERSION=1.33',['SpotterEnginer.lua']='main 1.33',['src/ui.lua']='ui 1.33'})
+  source(f,f.work..'/next/'..Fake.prefix:gsub('/$',''),{['manifest.ini']='VERSION=1.34',['SpotterEngineer.lua']='main 1.34',['src/update.lua']='update 1.34',['src/remote.lua']='remote 1.34',['src/ui.lua']='ui 1.34'})
+  source(f,f.work..'/current',{['manifest.ini']='VERSION=1.33',['SpotterEngineer.lua']='main 1.33',['src/ui.lua']='ui 1.33'})
   files[f.root..'/src/ui.lua']='ui 1.34'; files[f.work..'/installing.txt']='update 1.33 -> 1.34'
   -- Coupure au milieu d'un remplacement : fichier temporaire à moitié écrit, jamais pris pour le vrai.
   files[f.root..'/src/remote.lua.new']='remo'
   local r=Up.recover(p)
-  assert(r.outcome=='completed' and files[f.root..'/SpotterEnginer.lua']=='main 1.34' and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.34')
+  assert(r.outcome=='completed' and files[f.root..'/SpotterEngineer.lua']=='main 1.34' and Up.manifestVersion(files[f.root..'/manifest.ini'])=='1.34')
   assert(files[f.root..'/src/remote.lua']=='remote 1.34' and files[f.root..'/src/remote.lua.new']==nil)
-  assert(files[f.work..'/installing.txt']==nil and files[f.work..'/updated.txt']=='update 1.33 -> 1.34' and files[f.work..'/backup/SpotterEnginer.lua']=='main 1.33')
+  assert(files[f.work..'/installing.txt']==nil and files[f.work..'/updated.txt']=='update 1.33 -> 1.34' and files[f.work..'/backup/SpotterEngineer.lua']=='main 1.33')
   assert(Up.recover(p)==nil,'nothing left to recover')
   -- Promotion rejouée (plantage juste après elle) : version précédente intacte.
-  assert(p.promote('update') and files[f.work..'/backup/SpotterEnginer.lua']=='main 1.33' and p.sourceComplete('backup'))
+  assert(p.promote('update') and files[f.work..'/backup/SpotterEngineer.lua']=='main 1.33' and p.sourceComplete('backup'))
  end)
  onFake(nil,nil,function(f,p)
   local files=f.files
-  source(f,f.work..'/current',{['manifest.ini']='VERSION=1.33',['SpotterEnginer.lua']='main 1.33',['src/ui.lua']='ui 1.33'})
+  source(f,f.work..'/current',{['manifest.ini']='VERSION=1.33',['SpotterEngineer.lua']='main 1.33',['src/ui.lua']='ui 1.33'})
   files[f.root..'/src/ui.lua']='ui 1.34'; files[f.work..'/installing.txt']='update 1.33 -> 1.34'
   local r=Up.recover(p)
   assert(r.outcome=='restored' and files[f.root..'/src/ui.lua']=='ui 1.33' and files[f.work..'/updated.txt']=='recovered 1.33 -> 1.34')
  end)
  -- Version précédente incomplète (un fichier manquant) : jamais proposée ni utilisée.
  onFake(nil,function(f)
-  local names={}; for k,val in pairs({['manifest.ini']='VERSION=1.32',['SpotterEnginer.lua']='main 1.32'}) do f.files[f.work..'/backup/'..k]=val; names[#names+1]=k end
+  local names={}; for k,val in pairs({['manifest.ini']='VERSION=1.32',['SpotterEngineer.lua']='main 1.32'}) do f.files[f.work..'/backup/'..k]=val; names[#names+1]=k end
   names[#names+1]='src/ui.lua'; f.files[f.work..'/backup/.files']=table.concat(names,'\n')
  end,function(_,p,u) assert(u.previous==nil and not p.sourceComplete('backup') and not Up.rollback(u,p,true)) end)
 end
@@ -592,8 +592,8 @@ tests.UPDATE_REMOTE_REPEATED_136=function()
    local renamed,copied=false,false
    for k=before+1,#f.calls do
     local c=f.calls[k]
-    if c=='movedir state:SpotterEnginer-update/backup' then renamed=true end
-    if c:find('^copy state:SpotterEnginer%-update/backup/') then copied=true end
+    if c=='movedir state:SpotterEngineer-update/backup' then renamed=true end
+    if c:find('^copy state:SpotterEngineer%-update/backup/') then copied=true end
    end
    assert(renamed and not copied,'round '..round..': previous version renamed in one go, never copied')
    assert(Up.manifestVersion(f.files[f.root..'/manifest.ini'])==v,'round '..round..': installed '..v)
@@ -618,12 +618,12 @@ tests.UPDATE_TIDY_USER_STATE_137=function()
  local ok,err=pcall(function()
   f.app('1.36')
   local W=f.work
-  local back={'SpotterEnginer.lua','manifest.ini','src/update.lua'}
+  local back={'SpotterEngineer.lua','manifest.ini','src/update.lua'}
   for _,rel in ipairs(back) do f.files[W..'/backup/'..rel]=rel=='manifest.ini' and 'VERSION=1.35' or 'old '..rel end
   f.files[W..'/backup/.files']=table.concat(back,'\n'); f.files[W..'/backup/.over']='1.36'
   local nxt=W..'/next/'..Fake.prefix
-  for _,rel in ipairs({'SpotterEnginer.lua','manifest.ini','src/update.lua','src/remote.lua','src/ui.lua'}) do f.files[nxt..rel]='new '..rel end
-  f.files[nxt..'.files']='SpotterEnginer.lua\nmanifest.ini\nsrc/update.lua\nsrc/remote.lua\nsrc/ui.lua'
+  for _,rel in ipairs({'SpotterEngineer.lua','manifest.ini','src/update.lua','src/remote.lua','src/ui.lua'}) do f.files[nxt..rel]='new '..rel end
+  f.files[nxt..'.files']='SpotterEngineer.lua\nmanifest.ini\nsrc/update.lua\nsrc/remote.lua\nsrc/ui.lua'
   f.files[W..'/boot.txt.bak']='1.36\n0\n1.35'
   local p=Remote.new(function() end)
   local u=Up.new('1.36'); Up.start(u,p,Up.recover(p))
@@ -685,10 +685,10 @@ tests.UPDATE_SNAPSHOT_CHANGED_137=function()
   Up.check(u,p,0); f.flush(); f.watch(); assert(Up.install(u,p,true)); f.flush()
   local before=#f.calls; Up.tick(u,p,true,10); assert(u.phase=='restarting',tostring(u.phase))
   local saved={}
-  for k=before+1,#f.calls do local rel=f.calls[k]:match('^copy state:SpotterEnginer%-update/current/(.*)$'); if rel then saved[#saved+1]=rel end end
+  for k=before+1,#f.calls do local rel=f.calls[k]:match('^copy state:SpotterEngineer%-update/current/(.*)$'); if rel then saved[#saved+1]=rel end end
   table.sort(saved)
-  assert(table.concat(saved,',')=='SpotterEnginer.lua,manifest.ini,src/remote.lua,src/ui.lua,src/update.lua',table.concat(saved,','))
-  assert(f.files[f.work..'/backup/sounds/beep.wav']==nil and f.files[f.work..'/backup/SpotterEnginer.lua']=='main 1.36','unchanged file not kept')
+  assert(table.concat(saved,',')=='SpotterEngineer.lua,manifest.ini,src/remote.lua,src/ui.lua,src/update.lua',table.concat(saved,','))
+  assert(f.files[f.work..'/backup/sounds/beep.wav']==nil and f.files[f.work..'/backup/SpotterEngineer.lua']=='main 1.36','unchanged file not kept')
   assert(events(u):find('5 fichiers gardes',1,true),events(u))
  end)
  f.restore(); assert(ok,err)
@@ -703,7 +703,7 @@ tests.UPDATE_REPORT_RUNNING_147=function()
  u,p=ready({installed='1.33'}); Up.install(u,p,true); Up.tick(u,p,true,200)
  assert(find(p.calls,'report update 1.33 -> 1.34') and find(p.calls,'mark update 1.33 -> 1.34'),'same versions: unchanged')
 end
--- Compatibilité (SpotterEnginer dépend d'AdvancedIA) : le pont du paquet doit être celui d'AdvancedIA installé, avant
+-- Compatibilité (SpotterEngineer dépend d'AdvancedIA) : le pont du paquet doit être celui d'AdvancedIA installé, avant
 -- tout téléchargement copié ; même règle pour le retour arrière ; refus dit et publié pour l'accueil d'AdvancedIA.
 tests.UPDATE_COMPATIBILITY=function()
  assert(Up.bridgeVersion(LAYOUT)==1 and Up.bridgeVersion('x')==nil and Up.bridgeVersion(nil)==nil)
@@ -763,7 +763,7 @@ tests.UPDATE_ROLLBACK_OVER=function()
   local w,q=launch('1.34'); assert(w.previous=='1.33' and q.sourceOver('backup')=='1.34')
   f.app('1.35'); w,q=launch('1.35')
   assert(w.previous==nil and not Up.rollback(w,q,true),'1.35 installed by hand: the 1.33 files would mix with it')
-  Up.tick(w,q,true,5); assert(files[f.root..'/SpotterEnginer.lua']=='main 1.35' and files[f.work..'/backup/SpotterEnginer.lua']=='main 1.33')
+  Up.tick(w,q,true,5); assert(files[f.root..'/SpotterEngineer.lua']=='main 1.35' and files[f.work..'/backup/SpotterEngineer.lua']=='main 1.33')
   f.app('1.34'); w=launch('1.34'); assert(w.previous=='1.33','same version back: offered again')
   files[f.work..'/backup/.over']=nil; w=launch('1.34'); assert(w.previous==nil,'older backup without proof')
   files[f.work..'/updated.txt']='update 1.33 -> 1.34'; w=launch('1.34')
@@ -863,10 +863,10 @@ tests.UPDATE_PATHS_AND_TAGS=function()
  -- Tags : un numéro à point, caractères simples ; adresse exacte du tag, dans ce dépôt.
  for _,tag in ipairs({'2026','release-12','v1.34 beta','v1.34/x','v1.34?x','','v'}) do assert(not Up.release(release({tag_name=tag})),tag) end
  local a=release({tag_name='v1.34.0'}); assert(not Up.release(a),'assets of another tag')
- a=release(); a.assets[1].browser_download_url=Up.download..'v1.34/../../../../Autre/Depot/releases/download/v1.34/SpotterEnginer-1.34.zip'; assert(not Up.release(a))
- a=release(); a.assets[1].browser_download_url=Up.download..'v1.33/SpotterEnginer-1.34.zip'; assert(not Up.release(a))
- a=release(); a.assets[2].browser_download_url=Up.download..'v1.34/SpotterEnginer-1.34.sha256?x=1'; assert(not Up.release(a))
- a=release(); a.assets[2].name='SpotterEnginer-1.34.zip.sha256'; a.assets[2].browser_download_url=Up.download..'v1.34/SpotterEnginer-1.34.zip.sha256'; assert(Up.release(a))
+ a=release(); a.assets[1].browser_download_url=Up.download..'v1.34/../../../../Autre/Depot/releases/download/v1.34/SpotterEngineer-1.34.zip'; assert(not Up.release(a))
+ a=release(); a.assets[1].browser_download_url=Up.download..'v1.33/SpotterEngineer-1.34.zip'; assert(not Up.release(a))
+ a=release(); a.assets[2].browser_download_url=Up.download..'v1.34/SpotterEngineer-1.34.sha256?x=1'; assert(not Up.release(a))
+ a=release(); a.assets[2].name='SpotterEngineer-1.34.zip.sha256'; a.assets[2].browser_download_url=Up.download..'v1.34/SpotterEngineer-1.34.zip.sha256'; assert(Up.release(a))
  a=release({tag_name='1.34'}); for _,asset in ipairs(a.assets) do asset.browser_download_url=Up.download..'1.34/'..asset.name end; assert(Up.release(a).version=='1.34')
  -- À l'arrêt : jamais sur une image ou une voiture que CSP n'a pas pu lire (valeurs de l'image d'avant).
  assert(not Up.stopped({valid=false,paused=true}) and not Up.stopped({valid=true},{valid=false,inPit=true,kmh=0}))
@@ -881,7 +881,7 @@ tests.UPDATE_REMOTE_UNREADABLE=function()
    setup(f); Up.tick(u,p,true,10); check(f,u)
   end)
  end
- local function intact(f) return f.files[f.root..'/SpotterEnginer.lua']=='main 1.33' and f.files[f.root..'/src/ui.lua']=='ui 1.33' and Up.manifestVersion(f.files[f.root..'/manifest.ini'])=='1.33' and f.files[f.work..'/installing.txt']==nil end
+ local function intact(f) return f.files[f.root..'/SpotterEngineer.lua']=='main 1.33' and f.files[f.root..'/src/ui.lua']=='ui 1.33' and Up.manifestVersion(f.files[f.root..'/manifest.ini'])=='1.33' and f.files[f.work..'/installing.txt']==nil end
  local nxt='/next/'..Fake.prefix
  -- Nouveau module du paquet illisible (absent de l'app : nil des deux côtés).
  staged(function(f) f.noload[f.work..nxt..'src/new.lua']=true end,function(f,u)
@@ -917,7 +917,7 @@ tests.UPDATE_REMOTE_COMPARE_SLICES=function()
    local frames=0
    while u.phase=='staging' and frames<50 do frames=frames+1; Up.tick(u,p,false,frames); if u.phase=='staging' then assert(f.files[list]==nil) end end
    assert(frames>=6 and u.phase=='available' and u.release.staged and f.files[list],'frames '..frames..' '..u.phase)
-   assert(f.files[f.root..'/SpotterEnginer.lua']=='main 1.33' and f.reloads==0,'nothing copied while driving')
+   assert(f.files[f.root..'/SpotterEngineer.lua']=='main 1.33' and f.reloads==0,'nothing copied while driving')
    assert(Up.install(u,p,true)); Up.tick(u,p,true,60); assert(u.phase=='restarting')
   end)
   -- Fichier abîmé loin dans la liste : trouvé à sa tranche.
@@ -954,7 +954,7 @@ tests.UPDATE_REMOTE_COMPANION=function()
  onFake(nil,function(f) f.files[f.aaiRoot..'manifest.ini']=nil end,function(f,p,u)
   assert(p.companionLayout()==nil)
   Up.check(u,p,0); assert(Up.install(u,p,true)); assert(u.error=='aaiMissing','missing: '..tostring(u.error))
-  assert(f.files[f.work..'/next/apps/lua/SpotterEnginer/manifest.ini']==nil and f.reloads==0)
+  assert(f.files[f.work..'/next/apps/lua/SpotterEngineer/manifest.ini']==nil and f.reloads==0)
  end)
  onFake(nil,function(f) f.files[f.aaiRoot..'src/bridge_layout.lua']='local L={}\nL.version=0\nreturn L\n' end,function(_,p,u)
   assert(p.companionLayout():find('L.version=0',1,true))

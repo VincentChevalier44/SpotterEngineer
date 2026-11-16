@@ -574,4 +574,63 @@ function T.chequered_not_repeated_after_reload()
  ctx2.F.cars[0].finished=true; at(ctx2,2); Spotter.finish(s2,ctx2); at(ctx2,30); Spotter.finish(s2,ctx2)
  check(queued(v2,'chequered')~=nil,'normal finish: said')
 end
+-- Annonces de Beta 2.1.1 (choix du pilote du 15/11/2026).
+-- Limiteur : encore trop vite 1 s après l'entrée dans la voie, une fois ; jamais à la limite.
+function T.limiter_in_the_pit_lane()
+ local ctx,v=scene({})
+ local me=ctx.F.cars[0]; local s=Spotter.new()
+ at(ctx,1); Spotter.step(s,ctx)
+ me.pitlane=true; me.kmh=120; at(ctx,2); Spotter.step(s,ctx)
+ check(not queued(v,'limiter'),'just in: not yet')
+ at(ctx,3.2); Spotter.step(s,ctx)
+ check(take(v,'limiter')~=nil,'still too fast after 1 s: limiter')
+ at(ctx,4); Spotter.step(s,ctx)
+ check(not queued(v,'limiter'),'said once')
+ local ctx2,v2=scene({}); local s2=Spotter.new(); local me2=ctx2.F.cars[0]
+ at(ctx2,1); Spotter.step(s2,ctx2); me2.pitlane=true; me2.kmh=80; at(ctx2,2); Spotter.step(s2,ctx2); at(ctx2,3.5); Spotter.step(s2,ctx2)
+ check(not queued(v2,'limiter'),'at the limit: nothing')
+end
+-- Voie des stands rouverte ; place à rendre dans les 5 dernières secondes.
+function T.pit_lane_reopened_and_give_back_now()
+ local ctx,v=scene({{spline=0.6}})
+ local s=Spotter.new(); local d=ctx.link.d
+ d.pitsClosed=true; at(ctx,1); Spotter.step(s,ctx); take(v,'pitLaneClosed')
+ d.pitsClosed=false; at(ctx,2); Spotter.step(s,ctx)
+ local q=take(v,'pitLaneClosed')
+ check(q and q.text:find('rouverte',1,true),'pit lane reopened')
+ d.giveBack=1; d.giveBackLeft=12; at(ctx,3); Spotter.step(s,ctx); take(v,'giveBack')
+ d.giveBackLeft=4; at(ctx,4); Spotter.step(s,ctx)
+ local g=take(v,'giveBack')
+ check(g and g.text:find('maintenant',1,true),'give it back now')
+ d.giveBackLeft=3; at(ctx,5); Spotter.step(s,ctx)
+ check(not queued(v,'giveBack'),'once per debt')
+end
+-- Avertissements officiels de limites de piste d'AdvancedIA : « avertissement 1 sur 3 », puis le dernier.
+function T.track_limits_strike_count()
+ local ctx,v=scene({})
+ local s=Spotter.new(); local d=ctx.link.d
+ d.trackWarnings=3
+ ctx.link.cars[0]={valid=true,strikes=0,timeAdded=0,pending=0,cutLeft=0}
+ at(ctx,1); Spotter.step(s,ctx)
+ ctx.link.cars[0].strikes=1; at(ctx,2); Spotter.step(s,ctx)
+ local q=take(v,'strike')
+ check(q and q.text:find('1',1,true) and q.text:find('3',1,true),'warning 1 of 3: '..tostring(q and q.text))
+ ctx.link.cars[0].strikes=3; at(ctx,3); Spotter.step(s,ctx)
+ local l=take(v,'strike')
+ check(l and l.text:find('Dernier',1,true),'last warning')
+ ctx.link.cars[0].strikes=4; at(ctx,4); Spotter.step(s,ctx)
+ check(not queued(v,'strike'),'after the warnings (a penalty): no warning call')
+end
+-- Voisin direct au classement qui abandonne.
+function T.adjacent_rival_retires()
+ local ctx,v=scene({{spline=0.6,position=2},{spline=0.3,position=4}},{pos=3})
+ local s=Spotter.new()
+ at(ctx,1); Spotter.step(s,ctx)
+ ctx.F.cars[1].retired=true; at(ctx,2); Spotter.step(s,ctx)
+ local q=take(v,'retired:1')
+ check(q and q.text:find('devant',1,true),'car ahead retired')
+ ctx.F.cars[2].retired=true; at(ctx,3); Spotter.step(s,ctx)
+ local r=take(v,'retired:2')
+ check(r and r.text:find('derrière',1,true),'car behind retired')
+end
 return T

@@ -34,7 +34,7 @@ for k,v in pairs(SENTINEL) do NEUTRAL[k]=v end
 -- Réglages propres au joueur coupés pour la voiture regardée.
 M.OFF={penaltiesVoice=false,trackLimits=false,deltaVoice=false,blueFlags=false,drsVoice=false,boxCalls=false,strategyTalk=false,
  engineerOn=false,aaiMessages=false,emergencies=false,flashVoice=false,rivalPenalties=false,setupLab=false,neutralBox=false,
- fasterBehind=false,pitExit=false,shRadar=false,
+ fasterBehind=false,pitExit=false,shRadar=false,playerOnly=false,
  -- Écarts à chaque tour (on ne suit une voiture que quelques tours).
  gapEvery=1}
 local function neutralD()

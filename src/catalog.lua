@@ -317,6 +317,23 @@ local list={
  -- Départ interrompu (AdvancedIA 1.64) : un tour de plus, puis départ arrêté ou lancé.
  {'startDelayed',252,'252_depart_interrompu',"Départ interrompu, on refait un tour. Nouveau départ arrêté ensuite.",'252_start_aborted',"Start aborted, one more lap. Then a new standing start."},
  {'startDelayedRoll',253,'253_depart_interrompu_lance',"Départ interrompu, on refait un tour. Départ lancé ensuite.",'253_start_aborted_rolling',"Start aborted, one more lap. Then a rolling start."},
+ -- Annonces ajoutées en Beta 2.1.1 (choix du pilote du 15/11/2026).
+ {'limiter',254,'254_limiteur',"Limiteur, limiteur !",'254_limiter',"Limiter, limiter!",tone='urgent'},
+ {'pitReopened',255,'255_voie_rouverte',"La voie des stands est rouverte.",'255_pit_lane_open',"Pit lane is open again."},
+ {'giveBackNow',256,'256_rends_maintenant',"Rends la place maintenant, sinon c'est la pénalité !",'256_give_back_now',"Give the place back now, or it's a penalty!",tone='urgent'},
+ {'trackWarnOf',257,'257_limites_avertissement',"Limites de piste, avertissement",'257_track_limits_warning',"Track limits, warning"},
+ {'outOf',258,'258_sur','sur','258_of','of'},
+ {'trackLastWarn',259,'259_dernier_avertissement_limites',"Dernier avertissement ! La prochaine coupe, c'est la pénalité.",'259_last_track_warning',"Last warning! Next cut is a penalty.",tone='urgent'},
+ {'aheadRetired',260,'260_devant_abandonne',"La voiture devant abandonne.",'260_car_ahead_retired',"Car ahead has retired."},
+ {'behindRetired',261,'261_derriere_abandonne',"La voiture derrière abandonne.",'261_car_behind_retired',"Car behind has retired."},
+ {'onlyLeft',262,'262_plus_que',"Plus que",'262_only','Only'},
+ {'timePenalty',263,'263_penalite_temps',"Pénalité en temps :",'263_time_penalty',"Time penalty:",tone='calm'},
+ {'penaltyMargin',264,'264_marge_penalite',"Avec la pénalité, il te faut plus d'avance sur la voiture derrière. Écart :",'264_penalty_margin',"With the penalty, you need more of a gap to the car behind. Gap:",tone='motivating'},
+ {'missedBox',265,'265_box_rate',"On a raté le box, on recalcule.",'265_missed_box',"We missed the box, recalculating.",tone='calm'},
+ {'behindPitting',266,'266_derriere_rentre',"La voiture derrière rentre aux stands.",'266_car_behind_pitting',"Car behind is pitting."},
+ {'outBehind',267,'267_ressort_derriere',"Il ressort derrière toi, à",'267_out_behind',"He's out behind you, at"},
+ {'outAhead',268,'268_ressort_devant',"Il ressort devant toi, à",'268_out_ahead',"He's out ahead of you, at"},
+ {'raceFastestLap',269,'269_meilleur_tour_course',"Meilleur tour en course, superbe !",'269_fastest_lap',"Fastest lap of the race, great job!",tone='motivating'},
 }
 -- Précisions écrites seulement sur la radio (jamais dites), par langue : format string.format (src/say.lua, Say.note).
 C.notes={
@@ -344,7 +361,8 @@ C.spotterOnly={
  'fasterBehind_b','backmarker_b','gapStable','pullingAway','escaping','clearBehind','spinAhead','wrongWay',
  'stoppedAhead_b','onLeft','onRight','onMiddle','offTrack','passLeft','passRight','tangleAhead','incomingLeft',
  'incomingRight','clearPassed','formationRoll','blueAdvise','blueClass','pitShort','slowWarn','pitSprint',
- 'startDelayed','startDelayedRoll',}
+ 'startDelayed','startDelayedRoll','limiter','pitReopened','giveBackNow','trackWarnOf','outOf','trackLastWarn',
+ 'aheadRetired','behindRetired',}
 C.shared={
  'red','white','pitOpen','closing','hesClosing','boxThisLap','tyresCold','tyresHot','brakesHot','laps','lastDefend',
  'lastSafe','closing_b','closing_c','hesClosing_b','hesClosing_c','inSecond','inSecond_b','heInSecond','heInSecond_b',

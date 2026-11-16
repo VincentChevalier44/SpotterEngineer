@@ -205,6 +205,8 @@ local function updateBlock(app,x,y,w)
  return y+W.message(U2.kept,x,y+4,w,'mut')+10
 end
 local function home(app,x,y,w)
+ -- Renommage (Beta 2.1.1) : l'ancien dossier SpotterEnginer encore installé ferait parler deux radios.
+ if app.oldFolder then y=y+W.message(L.t.home.oldFolder,x,y,w,'er')+10 end
  y=y+linkPanel(app,x,y,w)+14
  local tw=(w-30)/4
  tile(app,'spotter','spotterOn',L.t.home.spotter,L.t.keys.spotterOn[2],x,y,tw)
@@ -569,7 +571,7 @@ function M.draw(v,app)
  local f=W.begin('spe')
  local c=W.colors()
  local w,h=f.w,f.h
- -- En-tête (comme AdvancedIA) : logo de l'app en haut à gauche, nom en deux tons (« ENGINER » couleur du casque),
+ -- En-tête (comme AdvancedIA) : logo de l'app en haut à gauche, nom en deux tons (« ENGINEER » couleur du casque),
  -- version, bureau, rôle si la place le permet ; à droite : liaison, radio coupée, langue, interrupteur général.
  W.rect(0,0,w,82,c.panel)
  local x=14
@@ -578,8 +580,8 @@ function M.draw(v,app)
  end
  W.text('SPOTTER',x,10,23,c.text,'display')
  local bw=W.width('SPOTTER',23,'display')
- W.text('ENGINER',x+bw,10,23,c.brand,'display')
- x=x+bw+W.width('ENGINER',23,'display')+9
+ W.text('ENGINEER',x+bw,10,23,c.brand,'display')
+ x=x+bw+W.width('ENGINEER',23,'display')+9
  -- Bord gauche de la partie droite (interrupteur, langue, liaison, radio coupée), dessinée ensuite.
  local chip,kind=M.linkChip(app.link)
  -- Fenêtre de réglages en jeu (comme SuperHUD) : petite croix à droite de l'interrupteur général.

@@ -1042,7 +1042,55 @@ local function rivals(s,ctx)
   end
  end
 end
--- Limites de piste du joueur (non suivies par AdvancedIA pour le joueur) : coupe comptée par AC ou tour invalidé.
+-- Annonces de Beta 2.1.1 (choix du pilote du 15/11/2026), pour la voiture du joueur seulement (playerOnly coupé pour la
+-- voiture regardée, src/spectator.lua) : limiteur oublié à l'entrée des stands, voie des stands rouverte, place à rendre
+-- dans les 5 dernières secondes, avertissements officiels de limites de piste d'AdvancedIA (strikes / trackWarnings,
+-- à la place de la simple coupe), voisin direct au classement qui abandonne.
+local function extras(s,ctx)
+ local F=ctx.F; local cfg=ctx.cfg; local d=ctx.link.d; local me=F.cars[F.player]
+ local x=s.extra
+ if not x then x={ret={}}; s.extra=x end
+ if not d or not me or not me.valid or cfg.playerOnly==false then x.lane=me and me.pitlane or false; x.strikes=nil; x.closed=nil; return end
+ -- Limiteur : encore au-dessus de la limite 1 s après l'entrée dans la voie (jamais sur la route d'accès), une fois.
+ if me.pitlane and not x.lane then x.laneAt=ctx.now; x.limSaid=false end
+ if cfg.raceControl and me.pitlane and not x.limSaid and x.laneAt and ctx.now-x.laneAt>=1 and ctx.now-x.laneAt<5
+  and not me.inPit and (me.kmh or 0)>(F.pitSpeed or 80)+3 then
+  x.limSaid=true; say(ctx,'limiter',1,{'limiter'},{ttl=3})
+ end
+ x.lane=me.pitlane
+ if cfg.raceControl and F.isRace and x.closed and not d.pitsClosed then say(ctx,'pitLaneClosed',2,{'pitReopened'},{ttl=10}) end
+ x.closed=d.pitsClosed==true
+ local gb=tonumber(d.giveBack) or -1
+ if gb>=0 then
+  local left=tonumber(d.giveBackLeft) or 0
+  if cfg.penaltiesVoice~=false and not x.gbSaid and left>0 and left<5 then x.gbSaid=true; say(ctx,'giveBack',1,{'giveBackNow'},{ttl=4}) end
+ else x.gbSaid=false end
+ local lc=Link.car(ctx.link,F.player)
+ local strikes=lc and tonumber(lc.strikes) or 0
+ local m=tonumber(d.trackWarnings) or 0
+ if x.strikes and strikes>x.strikes and cfg.trackLimits and F.isRace and m>0 and strikes<=m then
+  -- La coupe comptée par AC (« attention aux limites ») laisse la place à l'avertissement officiel.
+  Voice.drop(ctx.voice,'limits')
+  if strikes==m then say(ctx,'strike',2,{'trackLastWarn'},{ttl=8})
+  else say(ctx,'strike',2,{'trackWarnOf',{n=strikes},'outOf',{n=m}},{ttl=8}) end
+ end
+ x.strikes=strikes
+ if cfg.rivalPenalties and F.isRace and (tonumber(me.position) or 0)>0 then
+  for i=0,F.count-1 do
+   local c=F.cars[i]
+   if i~=F.player and c and c.valid then
+    local was=x.ret[i]
+    if c.retired and was==false then
+     local rel=(tonumber(c.position) or 0)-me.position
+     if rel==-1 then say(ctx,'retired:'..i,3,{'aheadRetired',{text='('..(c.name or '')..')'}},{ttl=10})
+     elseif rel==1 then say(ctx,'retired:'..i,3,{'behindRetired',{text='('..(c.name or '')..')'}},{ttl=10}) end
+    end
+    x.ret[i]=c.retired==true
+   end
+  end
+ end
+end
+-- Limites de piste du joueur : coupe comptée par AC ou tour invalidé (avertissements officiels d'AdvancedIA : extras).
 local function limits(s,ctx)
  local F=ctx.F; local me=F.me; local car=F.cars[F.player]
  if not ctx.cfg.trackLimits or not car or not car.valid or car.pitlane then s.cuts=me.cuts or 0; s.lapValid=me.lapValid; return end
@@ -1055,7 +1103,7 @@ end
 -- Arrivée d'une course (bilan de fin de course, src/debrief.lua) : « Drapeau à damier, course terminée ! Tu es P2. » ;
 -- l'ingénieur fait le bilan ensuite ; bilan coupé : le damier seul. Dite dès la ligne passée, pas au retour au stand :
 -- AdvancedIA suspend le pont à l'arrivée (garde « finished », la séance est finie pour AC) mais publie encore son
--- résultat ; appelée aussi pendant cette suspension (SpotterEnginer.lua). En jeu le 10/11/2026, le damier n'était venu
+-- résultat ; appelée aussi pendant cette suspension (SpotterEngineer.lua). En jeu le 10/11/2026, le damier n'était venu
 -- qu'à la reconnexion du pont, 62 s après la ligne, dans les stands. Place d'AdvancedIA (corrigée des pénalités) dès
 -- qu'il a vu l'arrivée, au plus tard FINISH_WAIT s après la ligne (sinon la place d'AC). Ligne vue par AC seulement :
 -- AdvancedIA ne remet son résultat à zéro qu'au changement de séance, pas au redémarrage d'une même course (déjà fini
@@ -1093,5 +1141,6 @@ function M.step(s,ctx)
  pitExit(s,ctx)
  rivals(s,ctx)
  limits(s,ctx)
+ extras(s,ctx)
 end
 return M

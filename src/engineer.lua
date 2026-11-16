@@ -382,7 +382,7 @@ M.pace=pace
 -- Bilan de fin de course (src/debrief.lua) : une fois, Debrief.DELAY s après la ligne d'arrivée (le spotter annonce
 -- d'abord la place), après un abandon ou une disqualification aussi ; dit en entier (jamais tenu pour déjà entendu).
 -- Arrivée vue par AC seulement (ligne passée, ou séance finie : abandon) ; appelé aussi pendant la suspension
--- « finished » d'AdvancedIA (SpotterEnginer.lua), jamais au retour au stand. Le résultat d'AdvancedIA ne sert qu'aux
+-- « finished » d'AdvancedIA (SpotterEngineer.lua), jamais au retour au stand. Le résultat d'AdvancedIA ne sert qu'aux
 -- détails (place corrigée, grille, abandon), et pas s'il était déjà fini avant l'arrivée : il ne le remet à zéro qu'au
 -- changement de séance, et après un redémarrage le bilan de la course d'avant a été dit à tort le 10/11/2026.
 local function debrief(e,ctx)
@@ -597,6 +597,50 @@ local function setupLab(e,ctx)
  if p.ready then say(ctx,'setupReady',4,{'setupReady'},{ttl=M.SETUP_TTL}) end
 end
 M.setupLab=setupLab
+-- Annonces de Beta 2.1.1 (choix du pilote du 15/11/2026) : « plus que 10, 5, 2 tours » (ou minutes en course au
+-- temps), jamais sous neutralisation ; pénalité en temps du joueur (temps ajouté par AdvancedIA) et, à 5 tours et au
+-- dernier tour, l'écart à tenir sur la voiture derrière quand il est plus petit que la pénalité ; meilleur tour de la
+-- course (pas avant le 3e tour, au plus un tous les 5 tours).
+local COUNT_MARKS={[10]=true,[5]=true,[2]=true}
+local function countdown(e,ctx,lapDone)
+ local F=ctx.F; local cfg=ctx.cfg; local d=ctx.link.d; local me=F.cars[F.player]
+ local x=e.extra
+ if not x then x={said={},penalty=nil,remind={},bestAt=-1e9}; e.extra=x end
+ if not F.isRace or not me or not me.valid or me.finished then return end
+ local neutral=d and d.neutral
+ local total=Strategist.total(e.strategist,F,me)
+ local left=total and total-me.laps or nil
+ if cfg.raceCountdown~=false and not neutral then
+  if F.timed and F.timeLeft and F.timeLeft>0 then
+   local min=math.ceil(F.timeLeft/60-1e-6)
+   if COUNT_MARKS[min] and F.timeLeft<=min*60 and F.timeLeft>min*60-5 and not x.said['m'..min] then
+    x.said['m'..min]=true; say(ctx,'countdown',4,{'onlyLeft',{n=min},'minutes'},{ttl=20})
+   end
+  elseif lapDone and left and COUNT_MARKS[left] and not x.said['l'..left] and not F.timed then
+   x.said['l'..left]=true; say(ctx,'countdown',4,{'onlyLeft',{n=left},'laps'},{ttl=20})
+  end
+ end
+ -- Pénalité en temps du joueur (secondes ajoutées au temps final par AdvancedIA).
+ local lc=Link.car(ctx.link,F.player)
+ local added=lc and tonumber(lc.timeAdded) or 0
+ if x.penalty and added>x.penalty+0.5 then
+  say(ctx,'timePenalty',3,{'timePenalty',{n=math.floor(added-x.penalty+0.5),unit='s'}},{ttl=15})
+ end
+ x.penalty=added
+ if added>0.5 and lapDone and left and (left==5 or left==1) and not x.remind[left] then
+  local _,behind=Position.neighbours(F,me)
+  if behind then
+   local g=Timing.gap(ctx.timing,F.player,behind,ctx.now)
+   if g and g>0 and g<added then x.remind[left]=true; say(ctx,'timePenalty',3,{'penaltyMargin',{n=g,dec=1,unit='s'}},{ttl=15}) end
+  end
+ end
+ -- Meilleur tour de la course.
+ if cfg.pace and lapDone and me.laps>=3 and (me.lastMs or 0)>0 and not e.lastLapPit and me.laps-x.bestAt>=5 then
+  local best=math.huge
+  for i=0,F.count-1 do local c=F.cars[i]; if i~=F.player and c.valid and (c.bestMs or 0)>0 then best=math.min(best,c.bestMs) end end
+  if me.lastMs<=(me.bestMs or me.lastMs) and me.lastMs<best-100 then x.bestAt=me.laps; say(ctx,'raceFastestLap',5,{'raceFastestLap'},{ttl=12}) end
+ end
+end
 function M.step(e,ctx,dt)
  local F=ctx.F; local me=F.cars[F.player]
  if not me or not me.valid then return end
@@ -622,6 +666,7 @@ function M.step(e,ctx,dt)
  weather(e,ctx)
  wind(e,ctx)
  driving(e,ctx,lapDone)
+ countdown(e,ctx,lapDone)
  debrief(e,ctx)
 end
 return M

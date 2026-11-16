@@ -1,8 +1,21 @@
 # Changelog
 
-All notable changes to SpotterEnginer. Newest first. SpotterEnginer requires AdvancedIA: see [COMPATIBILITY.md](COMPATIBILITY.md).
+All notable changes to SpotterEngineer. Newest first. SpotterEngineer requires AdvancedIA: see [COMPATIBILITY.md](COMPATIBILITY.md).
 
-## Unreleased
+## Beta 2.1.1 — 16 November 2026
+
+### Changed: the app is now called SpotterEngineer
+- New name everywhere: folder `apps/lua/SpotterEngineer`, files, windows, log (`SpotterEngineer.log`), package (`SpotterEngineer-<version>.zip`), GitHub repository and user guide.
+- Install by hand (the Update button cannot move the app to a new folder), then delete the old `apps/lua/SpotterEnginer` folder. Settings are taken over at the first launch; the Home tab warns while the old folder is still there.
+- The pit plan and strategy keys are published under both names (`SpotterEngineer.*` and the old `SpotterEnginer.*`) for the companion apps. Requires AdvancedIA Beta 2.0.2, which recognises the new folder.
+
+### Added: new radio calls
+- Spotter: **"Limiter, limiter!"** when you are still too fast one second into the pit lane; **"Pit lane is open again"**; **"Give the place back now, or it's a penalty!"** in the last 5 seconds to give a place back; AdvancedIA's official track-limits warnings, **"Track limits, warning 2 of 3"** then **"Last warning!"** (instead of the plain cut call); the car directly ahead or behind **retiring**.
+- Engineer: **"Only 10 / 5 / 2 laps"** (or minutes in a timed race; new setting **Laps and minutes left**, never under a neutralisation); your **time penalty** when AdvancedIA adds it, and at 5 laps to go and on the last lap the **gap you need** on the car behind when it is smaller than the penalty; **"We missed the box"**; the **car behind pitting**, then where it rejoins (ahead or behind you, with the gap); the **fastest lap of the race**.
+- Phrase variants asked with a tone now also include the neutral wording.
+
+### Fixed: "Hide in replays" works
+- Turned off, the overlays now stay on screen during a replay with the last state AdvancedIA published. Before, they were always hidden in replays.
 
 ### Fixed: full review of the app
 - Watched-car radio: switching the camera from one car to another no longer falls back to your own radio for 2 s (the Safety Car was called twice); formation laps and rolling starts are read correctly for the watched car; what it says no longer silences or re-arms your own calls when you drive again; it follows your **Varied phrasing**, **Tyres** and **Brakes** settings.
@@ -11,7 +24,7 @@ All notable changes to SpotterEnginer. Newest first. SpotterEnginer requires Adv
 - A rival entering the pit lane for a drive-through, or cutting the pit entry for a moment, is no longer taken for a pit stop ("cover, box").
 - No pit plan is published to the other apps after the finish; the chequered flag is not said again after the app reloads past the line; rival penalties are ignored while your position is unknown.
 - Settings: an unreadable settings file is no longer overwritten with the defaults (logged instead); **Reset all** respects an unreadable desktop; **Restore backgrounds** no longer turns the accent bar back on; the desktop tag is no longer shown on settings common to all desktops; on a CSP build without desktops, the overlays use desktop 1 instead of staying hidden.
-- Header: the version reads "Beta 2.0.0", not "vBeta 2.0.0"; the "up to date" time follows each new check. Phrase variants asked with a tone now also include the neutral wording.
+- Header: the version reads "Beta 2.0.0", not "vBeta 2.0.0"; the "up to date" time follows each new check.
 
 ### Changed: a lighter home page
 - The volumes and the **Car sound during the radio** settings are no longer on the home page; they stay in the **Radio** tab.
@@ -22,7 +35,7 @@ All notable changes to SpotterEnginer. Newest first. SpotterEnginer requires Adv
 
 ## Beta 2.0.0 — 14 November 2026
 
-SpotterEnginer moves to Beta 2.0.0 together with AdvancedIA Beta 2.0.0: same bridge (v2), released the same day.
+SpotterEngineer moves to Beta 2.0.0 together with AdvancedIA Beta 2.0.0: same bridge (v2), released the same day.
 
 **Requires AdvancedIA Beta 2.0.0 or later (bridge v2).** Earlier AdvancedIA versions are refused by the update, which asks to update AdvancedIA first. Publish AdvancedIA Beta 2.0.0 first. SetupLab is optional.
 
@@ -74,7 +87,7 @@ SpotterEnginer moves to Beta 2.0.0 together with AdvancedIA Beta 2.0.0: same bri
 - **Settings window in game**: a small cross next to the main switch closes it, as in SuperHUD. The overlays stay on screen and the apps taskbar opens the window again.
 
 ### New: settings window in game
-- The settings are now also in the CSP apps taskbar while driving, in a window named **SpotterEnginer - Config**, as SuperHUD does. The **SpotterEnginer** window stays in the pits and pause menu.
+- The settings are now also in the CSP apps taskbar while driving, in a window named **SpotterEngineer - Config**, as SuperHUD does. The **SpotterEngineer** window stays in the pits and pause menu.
 - On each app desktop, the in-game window keeps its own state: open or closed, position and size. On a desktop never used, it starts closed.
 - Each window reads the current desktop before it draws. Before, an overlay setting changed right after switching desktops could be saved to the desktop you had just left.
 - When CSP cannot tell the current desktop, overlays are suspended and their settings refused, as in SuperHUD, so another desktop is never changed. Before, desktop 1 was used. Voice settings still change.
@@ -115,14 +128,14 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged.
 Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged. The new calls need AdvancedIA Beta 1.61 with its settings switched on; without them nothing changes. Checked against the frozen bridge contract of AdvancedIA Beta 1.61.
 
 ### Blue flag in two stages and faster class (AdvancedIA *Nuanced lapped cars and classes*)
-- With that AdvancedIA setting on, the spotter first says *"Faster car closing in, get ready to let it through."*, then the usual blue flag when AdvancedIA gives the order (the first call is withdrawn if it is still waiting). The first blue flag of a session is still the plain one: SpotterEnginer only trusts the setting once it has seen it working. A faster class on the same lap has its own call, *"Faster class behind, hold your line and let it through."*, and the spotter's own *"faster traffic"* call stays quiet for that car.
+- With that AdvancedIA setting on, the spotter first says *"Faster car closing in, get ready to let it through."*, then the usual blue flag when AdvancedIA gives the order (the first call is withdrawn if it is still waiting). The first blue flag of a session is still the plain one: SpotterEngineer only trusts the setting once it has seen it working. A faster class on the same lap has its own call, *"Faster class behind, hold your line and let it through."*, and the spotter's own *"faster traffic"* call stays quiet for that car.
 - Without the setting (or with AdvancedIA's native blue flag) the blue flag is said as before.
 
 ### Live weather (AdvancedIA *Live weather*)
-- With that AdvancedIA setting on, the engineer announces the tyre crossover ahead of time: *"Rain tyres in 9 minutes"*, *"Back to slicks in 5 minutes"*, at 10, 5 and 2 minutes, once per crossover. It waits until the trend has held for a minute (at the start of a sudden shower the estimate is wrong), says nothing again when the trend wavers, and never once the bridge already says the track is wet or dry. *"Rain expected in N minutes"* keeps SpotterEnginer's own estimate.
+- With that AdvancedIA setting on, the engineer announces the tyre crossover ahead of time: *"Rain tyres in 9 minutes"*, *"Back to slicks in 5 minutes"*, at 10, 5 and 2 minutes, once per crossover. It waits until the trend has held for a minute (at the start of a sudden shower the estimate is wrong), says nothing again when the trend wavers, and never once the bridge already says the track is wet or dry. *"Rain expected in N minutes"* keeps SpotterEngineer's own estimate.
 
 ### Never stale values
-- AdvancedIA keeps the last text of these keys when its setting is off. SpotterEnginer only uses a key once its text has changed during the current session, and ignores it again when it stops changing (2.5 s for the blue flag, 30 s for the weather).
+- AdvancedIA keeps the last text of these keys when its setting is off. SpotterEngineer only uses a key once its text has changed during the current session, and ignores it again when it stops changing (2.5 s for the blue flag, 30 s for the weather).
 
 ## 1.3.4 — 11 November 2026
 
@@ -133,7 +146,7 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged. Needed for the fo
 - Checked against the bridge of AdvancedIA Beta 1.60 (same format).
 
 ### Strategy duel published for AdvancedIA
-- The engineer's undercut / overcut verdict is published for AdvancedIA's display (key `SpotterEnginer.strategy`, contract v1: mode, rival, gain, stop lap), with the same switches as the calls. See the README.
+- The engineer's undercut / overcut verdict is published for AdvancedIA's display (key `SpotterEngineer.strategy`, contract v1: mode, rival, gain, stop lap), with the same switches as the calls. See the README.
 
 ## 1.3.3 — 11 November 2026
 
@@ -177,7 +190,7 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged. Second full adver
 - The app loads even when the update modules are unreadable (the fallback itself failed).
 - The status published for AdvancedIA is no longer stale after a successful update or when no release exists; a refused roll back no longer shows as an incompatible update.
 - The bridge guard is checked again at the moment of the copy. Unreadable files are never taken for identical ones. Stricter package paths (Windows reserved names, trailing dots, case duplicates) and exact download address. The package comparison is spread over several frames. Preloaded clips are released before the files are copied. GitHub is not asked again at each app reload.
-- `tools/sync_repo.py` refuses a folder that is not the SpotterEnginer repository, never removes `.git*`, `.github/` or the files listed in `.syncrepo-keep`, and has `--dry-run`. `tools/package.py` compiles every Lua file of the package and refuses a package above 80 % of the size limit known to installed versions. `tools/generer_voix.py` writes each clip atomically.
+- `tools/sync_repo.py` refuses a folder that is not the SpotterEngineer repository, never removes `.git*`, `.github/` or the files listed in `.syncrepo-keep`, and has `--dry-run`. `tools/package.py` compiles every Lua file of the package and refuses a package above 80 % of the size limit known to installed versions. `tools/generer_voix.py` writes each clip atomically.
 
 ## 1.3.1 — 10 November 2026
 
@@ -230,7 +243,7 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged.
 
 ## 1.3.0 — 10 November 2026
 
-Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged. Nothing changes in the bridge or in the pit plan contract (`SpotterEnginer.pitplan` v1).
+Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged. Nothing changes in the bridge or in the pit plan contract (`SpotterEngineer.pitplan` v1).
 
 ### A more human radio
 - The most frequent calls have two to four wordings, never the same one twice in a row, and each clip has a tone chosen by the situation: urgent (hazards, emergencies), motivating (place gained, attack, within a second), disappointed but supportive (place lost, damage), calm (managing a gap, neutralisation). The tone is in the wording and the delivery (speed and pitch of the same voice).
@@ -281,12 +294,12 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged.
 
 ### End-of-race debrief
 - At the finish of a race the spotter says *"Chequered flag, race over! You're P2."*, then the engineer sums the race up: places gained or lost since the start, overtakes on track, *"And the fastest lap of the race!"* when it is yours, and a verdict (win, podium, top 5, top 10, good comeback, tough race, keep improving, not classified, disqualified).
-- Overtakes are counted by SpotterEnginer on the order of the cars on track: a backmarker being lapped and a place gained during a pit stop do not count. Start and finish places, best lap and how many times you were passed are written on the radio.
-- Said as soon as you cross the line, not when you get back to the pits: AdvancedIA pauses its bridge at the finish, and SpotterEnginer still reads its result during that pause. Once the line is crossed the engineer makes no other race call, and a result left over from before a session restart is never read out.
+- Overtakes are counted by SpotterEngineer on the order of the cars on track: a backmarker being lapped and a place gained during a pit stop do not count. Start and finish places, best lap and how many times you were passed are written on the radio.
+- Said as soon as you cross the line, not when you get back to the pits: AdvancedIA pauses its bridge at the finish, and SpotterEngineer still reads its result during that pause. Once the line is crossed the engineer makes no other race call, and a result left over from before a session restart is never read out.
 - New setting **End-of-race debrief** (tab **Engineer**, on by default). 19 new voice clips in each language (clips 143 to 161).
 
 ### Pit plan shared with AdvancedIA
-- SpotterEnginer publishes its pit plan for AdvancedIA (`ac.store` key `SpotterEnginer.pitplan`, contract v1): stop lap, window, state (planned, box now, done, none), whether the "box" calls are on, and a time stamp. From AdvancedIA Beta 1.59, its pit overlay follows it: a short notice when the window opens, then *box this lap* only on the planned lap. Nothing changes in the bridge.
+- SpotterEngineer publishes its pit plan for AdvancedIA (`ac.store` key `SpotterEngineer.pitplan`, contract v1): stop lap, window, state (planned, box now, done, none), whether the "box" calls are on, and a time stamp. From AdvancedIA Beta 1.59, its pit overlay follows it: a short notice when the window opens, then *box this lap* only on the planned lap. Nothing changes in the bridge.
 
 ### Update in the header, as in AdvancedIA
 - The header shows the installed version. When a newer one is published, the version turns blue and a small **Update · x** button appears next to it: one click installs it when stopped (pit box or pause), greyed while driving.
@@ -303,11 +316,11 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1), unchanged.
 ### Fixed: "Abnormal tyre wear" repeated every three minutes
 - When tyre wear is low or off, the virtual kilometres of the tyres stay near zero; the engineer took that for a fresh set at every frame, so a flat spot (or blisters, graining, a puncture) was called again as soon as the radio's repeat delay ran out. The call is now made once per set of tyres.
 - A new set is recognised when the virtual kilometres go back (tyre change, back to the pits), or after a pit stop from which the defect is gone. A defect has to last one second to be called.
-- The journal (`Documents/Assetto Corsa/logs/SpotterEnginer.log`) now says which tyre and which defect caused the call, with its values.
+- The journal (`Documents/Assetto Corsa/logs/SpotterEngineer.log`) now says which tyre and which defect caused the call, with its values.
 
 ### Fixed: traffic calls with nobody catching up
 - *"Faster traffic approaching from behind, hold your line."* compared speeds at one instant: a car up to 150 m behind that was simply braking later than you was "15 km/h faster" at every corner. A car is now called only when it really closes in: the time gap measured at the same place on the track shrinks by at least 0.1 s per second over 3 s (or 0.3 s per second over 1 s), and the gap would be gone within 15 s (called under 2 s). When you are down to walking pace (spin, off), a car less than 150 m behind and at least 40 km/h faster is called at once. Races are unchanged: a car about to lap you is called under 2 s.
-- *"Car on a flying lap behind, let it through."* (AdvancedIA's announcement) is said only if SpotterEnginer sees that car closing in the same way within 6 s, 3 s or less behind, and it now gives the measured gap. Otherwise nothing is said and the journal notes "tour lancé non confirmé" with the gap and closing rate. AdvancedIA was announcing cars that were only 5 to 9 km/h faster, more than a minute away.
+- *"Car on a flying lap behind, let it through."* (AdvancedIA's announcement) is said only if SpotterEngineer sees that car closing in the same way within 6 s, 3 s or less behind, and it now gives the measured gap. Otherwise nothing is said and the journal notes "tour lancé non confirmé" with the gap and closing rate. AdvancedIA was announcing cars that were only 5 to 9 km/h faster, more than a minute away.
 
 ## 1.1.0 — 9 November 2026
 
@@ -349,11 +362,11 @@ Requires AdvancedIA Beta 1.46 or later (bridge v1). The "car on a flying lap beh
 
 ### In-app updater
 - New **UPDATE** block on the **Home** tab, with the setting **Check for updates at launch** (on by default): one check on GitHub per launch, release notes shown, one-click install only when stopped (pit box or pause), **Cancel**, **Check now**, **Roll back to x**.
-- The package (`SpotterEnginer-x.y.z.zip`) and its `.sha256` are downloaded from the repository's releases only; size, SHA-256, package content and manifest version are checked; the current version is backed up; files are copied one by one, manifest last; the app restarts. Settings are kept.
+- The package (`SpotterEngineer-x.y.z.zip`) and its `.sha256` are downloaded from the repository's releases only; size, SHA-256, package content and manifest version are checked; the current version is backed up; files are copied one by one, manifest last; the app restarts. Settings are kept.
 - Interrupted copies are finished or undone at the next launch; a version that fails to start twice is rolled back automatically.
-- Work folder in CSP's state folder (`cfg/extension/state/SpotterEnginer-update`), never in the app folder.
+- Work folder in CSP's state folder (`cfg/extension/state/SpotterEngineer-update`), never in the app folder.
 - Compatibility guard: before installing or rolling back, the bridge version of the package is compared with the installed AdvancedIA's; the update is refused when AdvancedIA is older (*Update AdvancedIA first*), newer than the package knows, or missing.
-- Update state published for AdvancedIA's home page (`ac.store` key `SpotterEnginer.update`, contract v1).
+- Update state published for AdvancedIA's home page (`ac.store` key `SpotterEngineer.update`, contract v1).
 - New tool `tools/package.py` builds the release package and checks it with the real updater.
 
 ### Look

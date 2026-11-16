@@ -297,7 +297,18 @@ function M.step(t,ctx)
     if F.isRace and c.position==me.position-1 and cfg.strategyOn and cfg.rivalPitVoice then
      local over=cfg.strategyTalk and t.duel and t.duel.overcut and M.duelTalk(t,ctx)
      say(ctx,'rivalPitted',3,over and {'rivalPitted','overcutStay'} or {'rivalPitted'},{ttl=8})
-    elseif F.isRace and c.position==me.position+1 and cfg.strategyOn and cfg.strategyTalk then M.cover(t,ctx) end
+    elseif F.isRace and c.position==me.position+1 and cfg.strategyOn and cfg.strategyTalk then M.cover(t,ctx)
+    elseif F.isRace and c.position==me.position+1 and cfg.strategyOn and cfg.rivalPitVoice then
+     -- Voiture directement derrière qui rentre (Beta 2.1.1) ; à sa sortie : devant ou derrière le joueur, et l'écart.
+     t.watchOut=t.watchOut or {}; t.watchOut[i]=true
+     say(ctx,'rivalPitted',3,{'behindPitting'},{ttl=8})
+    end
+   end
+   if t.watchOut and t.watchOut[i] and t.rivalPit[i] and not c.pitlane then
+    t.watchOut[i]=nil
+    local ahead=(tonumber(c.position) or 99)<(tonumber(me.position) or 0)
+    local g=ahead and Timing.gap(ctx.timing,i,F.player,ctx.now) or Timing.gap(ctx.timing,F.player,i,ctx.now)
+    if g and g>0 and g<60 then say(ctx,'rivalOut',3,{ahead and 'outAhead' or 'outBehind',{n=g,dec=1,unit='s'}},{ttl=10}) end
    end
    t.rivalPit[i]=c.pitlane
   end
@@ -442,6 +453,10 @@ function M.boxCalls(t,ctx)
  -- que l'arrêt n'est pas fait (voie des stands) ou que le tour L n'est pas passé : jamais « box ce tour » puis « box au
  -- prochain tour » (constaté en course le 05/11/2026). Libéré avant tout retour (tour passé, appels coupés) : un plan
  -- sans arrêt le gardait jusqu'à l'arrivée (carburant muet, plan publié sur un tour passé).
+ -- Tour du « box ce tour-ci » passé sans entrer dans la voie : dit une fois (Beta 2.1.1), puis le plan se refait.
+ if t.boxLap and lap>t.boxLap and cfg.boxCalls and t.boxSaid[t.boxLap..'t'] and not t.stopDone and F.isRace then
+  say(ctx,'missedBox',3,{'missedBox'},{ttl=10})
+ end
  if t.boxLap and (lap>t.boxLap or not cfg.boxCalls) then t.boxLap=false end
  if not cfg.boxCalls or not F.isRace or not t.ready or not plan or not plan.ok or not plan.optimal or me.pitlane then return end
  -- Voie des stands fermée (AdvancedIA, sous neutralisation) : aucun « box » ; il sera dit à sa réouverture.
@@ -476,7 +491,7 @@ function M.boxCalls(t,ctx)
  if not (d and d.neutral) then t.neutralBox=false; t.stayOutSaid=false end
 end
 -- Plan d'arrêt publié pour AdvancedIA (contrat v1 avec sa session, 10/11/2026 ; son overlay d'arrêt suit ce plan) :
--- ac.store('SpotterEnginer.pitplan','v=1;lap=<N>;compound=-;state=planned|boxnow|done|none;window=<a>-<b>;boxcalls=0|1;
+-- ac.store('SpotterEngineer.pitplan','v=1;lap=<N>;compound=-;state=planned|boxnow|done|none;window=<a>-<b>;boxcalls=0|1;
 -- stamp=<s>'), 160 octets au plus.
 -- lap : tour en cours au moment d'entrer (me.laps+1), celui du « box » (figé dès « box au prochain tour »). compound :
 -- toujours « - » (le modèle ne choisit pas de composé). state : planned (plan prêt, jamais sur les estimations des
@@ -486,7 +501,10 @@ end
 -- passée avant le ravitaillement, ne l'efface pas), none (pas de plan prêt, hors course, app ou ingénieur coupés).
 -- stamp : temps de simulation en secondes entières (le texte change chaque seconde : AdvancedIA tient le plan pour figé
 -- s'il n'avance plus pendant 6 s, et repart de zéro s'il recule). Texte refait seulement quand une valeur change.
-M.pitplanKey='SpotterEnginer.pitplan'
+M.pitplanKey='SpotterEngineer.pitplan'
+-- Ancien nom de l'app (SpotterEnginer, jusqu'à Beta 2.0.0) : même texte publié aussi sous l'ancienne clé, pour les
+-- versions d'AdvancedIA, SuperHUD et SetupLab qui ne lisent que celle-là (renommage du 15/11/2026).
+M.pitplanKeyOld='SpotterEnginer.pitplan'
 function M.pitplan(t,ctx,on)
  local F=ctx.F; local plan=t.plan; local me=F.cars and F.cars[F.player]
  local stamp=math.max(0,math.floor(tonumber(F.clock) or 0))
@@ -514,13 +532,14 @@ function M.pitplan(t,ctx,on)
  return c.text
 end
 -- Duel de stratégie publié pour AdvancedIA (1.3.4, contrat v1 avec sa session, 11/11/2026 ; lu pour son affichage et
--- son journal seulement, jamais pour ses IA) : ac.store('SpotterEnginer.strategy','v=1;mode=undercut|overcut|cover|none;
+-- son journal seulement, jamais pour ses IA) : ac.store('SpotterEngineer.strategy','v=1;mode=undercut|overcut|cover|none;
 -- rival=<indice d'AC|-1>;gain=<s, une décimale|-1.0>;lap=<tour d'arrêt|0>;stamp=<s>'), 160 octets au plus.
 -- mode : undercut (on rentre avant la voiture de devant ; gain = ce que l'arrêt avancé fait gagner sur elle), cover (la
 -- voiture de derrière menace d'un undercut), overcut (on reste dehors face à la voiture de devant), none (pas de duel,
 -- plan pas prêt, arrêt trop loin, voie des stands, neutralisation, hors course, réglages coupés). rival : la voiture
 -- du duel. lap : tour d'arrêt du plan (celui du « box » engagé). stamp : comme pitplan (périmé après 6 s sans avancer).
-M.strategyKey='SpotterEnginer.strategy'
+M.strategyKey='SpotterEngineer.strategy'
+M.strategyKeyOld='SpotterEnginer.strategy'
 function M.strategy(t,ctx,on)
  local F=ctx.F; local plan=t.plan; local me=F.cars and F.cars[F.player]; local du=t.duel
  local stamp=math.max(0,math.floor(tonumber(F.clock) or 0))

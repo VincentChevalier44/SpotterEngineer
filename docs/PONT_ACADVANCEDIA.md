@@ -1,24 +1,24 @@
-# ACAdvancedIA → SpotterEnginer bridge
+# ACAdvancedIA → SpotterEngineer bridge
 
-SpotterEnginer only works on top of ACAdvancedIA: it reads the state decided by its engine (flags, neutralisations,
+SpotterEngineer only works on top of ACAdvancedIA: it reads the state decided by its engine (flags, neutralisations,
 delta, penalties, pit window, AI sanctions and pit plans…) through a structure shared between Lua apps
 (`ac.connect`). This document describes the files to add to ACAdvancedIA and the four hook-ups to make, so that they
 ship in its next version (otherwise ACAdvancedIA's GitHub update would overwrite them).
 
 The code blocks below are reproduced exactly as integrated, with their original French comments.
 
-**Status (4 November 2026)**: integrated into AC Advanced AI **Beta 1.46**, published on GitHub (commit 760e293, release v1.46, accepted by the built-in update of 1.45). The only difference from the patch below: the per-frame `pcall` calls a single function, `bridgeWork`, instead of creating a closure every frame. Two additions from its session: the bridge is only opened if `apps/lua/SpotterEnginer/manifest.ini` exists (`Applier.companionInstalled`), otherwise there is neither `ac.connect` nor per-frame work (log line `pont des apps compagnes: SpotterEnginer absent, pont inactif`, *companion app bridge: SpotterEnginer missing, bridge inactive*); cost measured by its session: about 0.01 ms per frame with 30 AI. Checked: identical format, and the installed `bridgeOpen` tested by `tests/integration_spec.lua`. The rest of this document describes the patch as it was proposed.
+**Status (4 November 2026)**: integrated into AC Advanced AI **Beta 1.46**, published on GitHub (commit 760e293, release v1.46, accepted by the built-in update of 1.45). The only difference from the patch below: the per-frame `pcall` calls a single function, `bridgeWork`, instead of creating a closure every frame. Two additions from its session: the bridge is only opened if `apps/lua/SpotterEngineer/manifest.ini` exists (`Applier.companionInstalled`), otherwise there is neither `ac.connect` nor per-frame work (log line `pont des apps compagnes: SpotterEngineer absent, pont inactif`, *companion app bridge: SpotterEngineer missing, bridge inactive*); cost measured by its session: about 0.01 ms per frame with 30 AI. Checked: identical format, and the installed `bridgeOpen` tested by `tests/integration_spec.lua`. The rest of this document describes the patch as it was proposed.
 
-**Rename (5 November 2026)**: from Beta 1.49 on, the app is called **AdvancedIA** and installs into `apps/lua/AdvancedIA/` (script `AdvancedIA.lua`, manifest `NAME=AdvancedIA`, log `AdvancedIA.log`). The bridge itself does not change: `src/bridge_layout.lua` stays identical byte for byte and the `ac.connect` keys keep the old prefix (`ACAdvancedIA.Bridge.Hello`, `ACAdvancedIA.Bridge.Data.v1`), on purpose, because the protocol is frozen. SpotterEnginer (`src/port.lua`, `M.detect`) looks for `apps/lua/AdvancedIA/manifest.ini`, then the old `apps/lua/ACAdvancedIA/manifest.ini`; the main script is read under the folder's name. The `ACAdvancedIA` paths below date from the integration (1.46): read `AdvancedIA` for 1.49 and later.
+**Rename (5 November 2026)**: from Beta 1.49 on, the app is called **AdvancedIA** and installs into `apps/lua/AdvancedIA/` (script `AdvancedIA.lua`, manifest `NAME=AdvancedIA`, log `AdvancedIA.log`). The bridge itself does not change: `src/bridge_layout.lua` stays identical byte for byte and the `ac.connect` keys keep the old prefix (`ACAdvancedIA.Bridge.Hello`, `ACAdvancedIA.Bridge.Data.v1`), on purpose, because the protocol is frozen. SpotterEngineer (`src/port.lua`, `M.detect`) looks for `apps/lua/AdvancedIA/manifest.ini`, then the old `apps/lua/ACAdvancedIA/manifest.ini`; the main script is read under the folder's name. The `ACAdvancedIA` paths below date from the integration (1.46): read `AdvancedIA` for 1.49 and later.
 
 Known limit of formats v1 and v2: `penaltyKind` is `string(4)`, so "slow" arrives as "slo". The reader treats any value other than "dq" as a throttle cut (v2 kept `string(4)`).
 
-**Version 2 (AdvancedIA Beta 2.0.0, SpotterEnginer Beta 2.0.0)**: key `ACAdvancedIA.Bridge.Data.v2`, `L.version=2`. New fields: per car `retired` and `lastReason` (codes in `L.reasons`, 99 = other); global `trackWarnings` and `serveLaps` (the session's sanction rules).
+**Version 2 (AdvancedIA Beta 2.0.0, SpotterEngineer Beta 2.0.0)**: key `ACAdvancedIA.Bridge.Data.v2`, `L.version=2`. New fields: per car `retired` and `lastReason` (codes in `L.reasons`, 99 = other); global `trackWarnings` and `serveLaps` (the session's sanction rules).
 
 ## Files added (already present in `apps/lua/AdvancedIA/src`, `ACAdvancedIA/src` before 1.49)
 
 - `src/bridge_layout.lua`: pure description of the format. **Identical character for character** to
-  `apps/lua/SpotterEnginer/src/bridge_layout.lua` (checked by SpotterEnginer's `python tests/run.py`).
+  `apps/lua/SpotterEngineer/src/bridge_layout.lua` (checked by SpotterEngineer's `python tests/run.py`).
 - `src/bridge.lua`: pure writer (reads the engine only, no CSP function; complies with `tests/lint.py`).
 
 ## Hook-ups in `ACAdvancedIA.lua`
@@ -76,7 +76,7 @@ The log lines written by this code are in French: `pont des apps compagnes: ouve
 Placed before the final `return M`.
 
 ```lua
--- Pont vers les apps compagnes (SpotterEnginer, src/bridge.lua) : deux structures partagées entre apps Lua
+-- Pont vers les apps compagnes (SpotterEngineer, src/bridge.lua) : deux structures partagées entre apps Lua
 -- (ac.connect), décrites par src/bridge_layout.lua ; la clé de chacune (champ « key ») évite toute collision. Sans
 -- ac.connect (autre version de CSP, bancs de mesure) : nil et la raison, rien n'est publié.
 local function bridgeItem(f)
@@ -117,31 +117,31 @@ end
   heartbeat (frame counter), closing.
 - `data` (key `ACAdvancedIA.Bridge.Data.v2`; `.v1` before Beta 2.0.0): state published every frame; AC car indices (0 = first car,
   -1 = none); durations in seconds remaining or elapsed; a one-frame event is a counter that changes.
-- A new version of the format changes the `data` key and `version`: SpotterEnginer then shows **Different bridge
+- A new version of the format changes the `data` key and `version`: SpotterEngineer then shows **Different bridge
   version** instead of reading wrong data.
 
-## Keys published by SpotterEnginer (read by AdvancedIA)
+## Keys published by SpotterEngineer (read by AdvancedIA)
 
-SpotterEnginer never writes into the bridge. It publishes three short texts with `ac.store`, read by AdvancedIA, each with its own contract version:
+SpotterEngineer never writes into the bridge. It publishes three short texts with `ac.store`, read by AdvancedIA, each with its own contract version:
 
 | Key | Format | Read by |
 |---|---|---|
-| `SpotterEnginer.update` | `v=1;installed=…;latest=…;state=available\|uptodate\|checking\|error\|incompatible[;needs=…]` | AdvancedIA's home page (line « SpotterEnginer › ») |
-| `SpotterEnginer.strategy` (1.3.4) | `v=1;mode=undercut\|overcut\|cover\|none;rival=<AC index\|-1>;gain=<s\|-1.0>;lap=<N\|0>;stamp=<s>` | AdvancedIA's display and log (suffix of its mandatory stop reminder), from Beta 1.60 |
-| `SpotterEnginer.pitplan` (1.2.0) | `v=1;lap=<N>;compound=-;state=planned\|boxnow\|done\|none;window=<a>-<b>;boxcalls=0\|1;stamp=<s>` | AdvancedIA's pit overlay, from Beta 1.59 |
+| `SpotterEngineer.update` | `v=1;installed=…;latest=…;state=available\|uptodate\|checking\|error\|incompatible[;needs=…]` | AdvancedIA's home page (line « SpotterEngineer › ») |
+| `SpotterEngineer.strategy` (1.3.4) | `v=1;mode=undercut\|overcut\|cover\|none;rival=<AC index\|-1>;gain=<s\|-1.0>;lap=<N\|0>;stamp=<s>` | AdvancedIA's display and log (suffix of its mandatory stop reminder), from Beta 1.60 |
+| `SpotterEngineer.pitplan` (1.2.0) | `v=1;lap=<N>;compound=-;state=planned\|boxnow\|done\|none;window=<a>-<b>;boxcalls=0\|1;stamp=<s>` | AdvancedIA's pit overlay, from Beta 1.59 |
 
 They are 200 (update) and 160 (pit plan, strategy) characters at most; unknown fields are ignored and another `v` is ignored. See the README for the meaning of each field.
 
-## Keys published by AdvancedIA (read by SpotterEnginer, 1.3.5)
+## Keys published by AdvancedIA (read by SpotterEngineer, 1.3.5)
 
-AdvancedIA Beta 1.61 writes two more short texts with `ac.store`, only while SpotterEnginer is installed and the matching setting is on. Neither is cleared when the setting goes off, and their `stamp` is AdvancedIA's own clock: SpotterEnginer reads them twice a second, takes the text found at launch or at a new session as a reference that is never used, and only uses a key once its text has changed during the session (`src/side.lua`); a key that has not changed for 2.5 s (traffic, during a blue flag) or 30 s (weather) is frozen and ignored. Another `v`, a missing field or an unknown value makes the key unreadable; unknown fields are ignored.
+AdvancedIA Beta 1.61 writes two more short texts with `ac.store`, only while SpotterEngineer is installed and the matching setting is on. Neither is cleared when the setting goes off, and their `stamp` is AdvancedIA's own clock: SpotterEngineer reads them twice a second, takes the text found at launch or at a new session as a reference that is never used, and only uses a key once its text has changed during the session (`src/side.lua`); a key that has not changed for 2.5 s (traffic, during a blue flag) or 30 s (weather) is frozen and ignored. Another `v`, a missing field or an unknown value makes the key unreadable; unknown fields are ignored.
 
-| Key | Fields read | SpotterEnginer |
+| Key | Fields read | SpotterEngineer |
 |---|---|---|
 | `AdvancedIA.traffic` (setting *Nuanced lapped cars and classes*) | `blue` (`none`, `lap`, `class`), `stage` (`none`, `advise`, `order`), `car` (AC index), `gap`, `closing`, `count` | while the driver's panel is blue: `lap` + `advise`: *"Faster car closing in, get ready to let it through."*; `lap` + `order`: the blue flag; `class`: *"Faster class behind…"* (and no *"faster traffic"* call for that car). Nothing useful within 2.5 s of the blue panel (the key can be up to 2 s late): the plain blue flag; after the advise, a key that freezes gives the order |
-| `AdvancedIA.weather` (setting *Live weather*) | `eta` (time before AdvancedIA's dry / wet state switches, s), `next` (`dry`, `inter`, `wet`, `none`); `trend`, `forecast`, `forecastIn`, `rain`, `wet` are parsed but not used | crossover: *"Rain tyres in N minutes"* / *"Back to slicks in N minutes"*, at 10, 5 and 2 minutes, once per crossover, after the direction has held 60 s, never once the bridge's `wet` already matches. *"Rain expected"* keeps SpotterEnginer's own estimate: `forecastIn` is the time until the forecast weather is fully set, only an upper bound of the first rain |
+| `AdvancedIA.weather` (setting *Live weather*) | `eta` (time before AdvancedIA's dry / wet state switches, s), `next` (`dry`, `inter`, `wet`, `none`); `trend`, `forecast`, `forecastIn`, `rain`, `wet` are parsed but not used | crossover: *"Rain tyres in N minutes"* / *"Back to slicks in N minutes"*, at 10, 5 and 2 minutes, once per crossover, after the direction has held 60 s, never once the bridge's `wet` already matches. *"Rain expected"* keeps SpotterEngineer's own estimate: `forecastIn` is the time until the forecast weather is fully set, only an upper bound of the first rain |
 
-## Announcements read by SpotterEnginer (`messageKind`, Beta 1.49 to 1.51)
+## Announcements read by SpotterEngineer (`messageKind`, Beta 1.49 to 1.51)
 
 A single slot in `data`: `messageId` increases with every announcement; `messageKind`, `messageValue`, `messageExtra`,
 `messageTitle` and `messageText` describe the latest one. The title and the text are those of AdvancedIA's overlay
@@ -150,9 +150,9 @@ A single slot in `data`: `messageId` increases with every announcement; `message
 aside or overwritten in a frame are sent again on the next frame (one slot, given up after 5 s or when the session
 changes).
 
-| Kind | When | value / extra | SpotterEnginer |
+| Kind | When | value / extra | SpotterEngineer |
 |---|---|---|---|
-| `pitCompound` | F1 rules, stop due: start of the reminder before the pit entry, once per approach (1.50) | compound fitted / -1 | neither said nor written; the last reminder gives the kind and the text of the call SpotterEnginer makes at the pit lane entry (stop due, window open, on any lap) |
+| `pitCompound` | F1 rules, stop due: start of the reminder before the pit entry, once per approach (1.50) | compound fitted / -1 | neither said nor written; the last reminder gives the kind and the text of the call SpotterEngineer makes at the pit lane entry (stop due, window open, on any lap) |
 | `pitPlanSame` | Quick Pitstop strategy with the same compound: at the start, and instead of `pitCompound` | fitted / planned | like `pitCompound`; at the start: said only once, at half of the first lap, unless `pitPlanOk` arrived in between |
 | `pitPlanOk` (asked of AdvancedIA, 5 November 2026) | strategy fixed: `same` → `ok`, F1 stop due | fitted / planned | the pending or queued "same compound" notice is withdrawn; the pit lane call becomes "change compound" again; written |
 | `pitNotCounted` | decision: time up without a compound change | arrival / the same | said |

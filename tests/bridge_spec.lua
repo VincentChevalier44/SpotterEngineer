@@ -1,4 +1,4 @@
--- Pont réel d'AdvancedIA (src/bridge.lua, chargé sous 'aai/bridge') -> liaison et spotter de SpotterEnginer.
+-- Pont réel d'AdvancedIA (src/bridge.lua, chargé sous 'aai/bridge') -> liaison et spotter de SpotterEngineer.
 local Bridge=require('aai/bridge')
 local Layout=require('src/bridge_layout')
 local Link=require('src/link')

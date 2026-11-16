@@ -1,6 +1,6 @@
--- Mise à jour de SpotterEnginer depuis GitHub : module repris d'AdvancedIA (les mentions « Beta 1.xx » ci-dessous sont
+-- Mise à jour de SpotterEngineer depuis GitHub : module repris d'AdvancedIA (les mentions « Beta 1.xx » ci-dessous sont
 -- son historique). Vérification au lancement, empreinte SHA-256, sauvegarde, installation à l'arrêt, retour arrière.
--- En plus (SpotterEnginer dépend d'AdvancedIA) : le paquet n'est installé, et la version précédente n'est rétablie,
+-- En plus (SpotterEngineer dépend d'AdvancedIA) : le paquet n'est installé, et la version précédente n'est rétablie,
 -- que si son pont (src/bridge_layout.lua, version) est celui d'AdvancedIA installé (M.compatible).
 -- L'empreinte vient de la même publication que le paquet : elle garantit le transport, pas l'éditeur (aucune signature) ;
 -- d'où l'adresse exacte exigée (M.release), l'installation sur clic seulement et jamais vers une version plus ancienne.
@@ -18,7 +18,7 @@
 -- Interrompue (plantage, coupure), la copie est reprise au lancement suivant, avant tout autre module (M.recover) :
 -- décidée par le manifeste installé, deux essais au plus, jamais en boucle (redémarrage seulement repère levé). Une
 -- version installée qui ne démarre pas deux fois de suite est défaite automatiquement (démarrage surveillé).
--- Contrat figé du haut de SpotterEnginer.lua (lu avant tout autre module, par toutes les versions à venir) : M.recover(port)
+-- Contrat figé du haut de SpotterEngineer.lua (lu avant tout autre module, par toutes les versions à venir) : M.recover(port)
 -- et son résultat {outcome, kind, from, to, file, failed, restart}, Remote.new(onRelease), port.ready, port.work,
 -- port.restart, port.log, port.bootOk. Ne jamais changer ces noms ni leur sens.
 -- Une copie interrompue peut laisser ce module et src/remote.lua de deux versions le temps d'un lancement : M.recover
@@ -28,17 +28,17 @@
 -- Beta 1.37 : dossier de travail nettoyé (M.tidy) au lancement sans repère ni démarrage surveillé, et dès qu'une version
 -- tout juste installée a démarré (port.bootOk, puis M.tidy) : aucun reste après une mise à jour réussie.
 local M={}
-M.repo='VincentChevalier44/SpotterEnginer'
+M.repo='VincentChevalier44/SpotterEngineer'
 M.api='https://api.github.com/repos/'..M.repo..'/releases/latest'
 M.page='https://github.com/'..M.repo..'/releases'
 M.download='https://github.com/'..M.repo..'/releases/download/'
-M.prefix='apps/lua/SpotterEnginer/'
--- Paquets publiés : SpotterEnginer-<version>.zip et son empreinte (.sha256 ou .zip.sha256) ; versions écrites sans
+M.prefix='apps/lua/SpotterEngineer/'
+-- Paquets publiés : SpotterEngineer-<version>.zip et son empreinte (.sha256 ou .zip.sha256) ; versions écrites sans
 -- préfixe (« 1.1.0 »).
-M.assetPrefix='SpotterEnginer-'
-M.required={'manifest.ini','SpotterEnginer.lua','src/update.lua','src/remote.lua','src/bridge_layout.lua'}
-M.headers={['User-Agent']='SpotterEnginer',['Accept']='application/vnd.github+json'}
--- AdvancedIA, dont SpotterEnginer dépend : dossiers possibles (nouveau nom d'abord) et fichier du pont partagé.
+M.assetPrefix='SpotterEngineer-'
+M.required={'manifest.ini','SpotterEngineer.lua','src/update.lua','src/remote.lua','src/bridge_layout.lua'}
+M.headers={['User-Agent']='SpotterEngineer',['Accept']='application/vnd.github+json'}
+-- AdvancedIA, dont SpotterEngineer dépend : dossiers possibles (nouveau nom d'abord) et fichier du pont partagé.
 M.companion={folders={'AdvancedIA','ACAdvancedIA'},layout='src/bridge_layout.lua',name='AdvancedIA'}
 M.notesMax=40
 M.lineMax=200
@@ -52,7 +52,7 @@ M.recoverTries=2
 M.bootTries=2
 M.checkTimeout=45
 M.downloadTimeout=180
--- Numéro de version : '1.1.0', 'v1.1.0', 'SpotterEnginer-1.1.0.zip', 'Beta 1.33' -> {1,1,0} / {1,33} ; nil sans numéro.
+-- Numéro de version : '1.1.0', 'v1.1.0', 'SpotterEngineer-1.1.0.zip', 'Beta 1.33' -> {1,1,0} / {1,33} ; nil sans numéro.
 function M.version(text)
  if type(text)~='string' then return nil end
  local s=text:match('(%d+%.%d+[%.%d]*)') or text:match('(%d+)')
@@ -137,7 +137,7 @@ function M.safeRel(rel)
  end
  return true
 end
--- Chemin d'une entrée du paquet, sous apps/lua/SpotterEnginer/ (une entrée de dossier finit par « / »).
+-- Chemin d'une entrée du paquet, sous apps/lua/SpotterEngineer/ (une entrée de dossier finit par « / »).
 local function safe(name)
  if not starts(name,M.prefix) then return false end
  local rest=name:sub(#M.prefix+1)
@@ -206,7 +206,7 @@ function M.manifestKey(text,key)
  local v=('\n'..text):match('\n[ \t]*'..key..'[ \t]*=[ \t]*([^\r\n]+)')
  return v and v:gsub('%s+$','') or nil
 end
--- Compatibilité d'une version de SpotterEnginer (texte de son src/bridge_layout.lua) avec AdvancedIA installé (texte du
+-- Compatibilité d'une version de SpotterEngineer (texte de son src/bridge_layout.lua) avec AdvancedIA installé (texte du
 -- sien, nil s'il est absent) : true, ou false et la raison : 'aaiMissing' (AdvancedIA absent), 'aaiOld' (pont
 -- d'AdvancedIA plus ancien : « Mettez d'abord AdvancedIA à jour »), 'aaiNewer' (pont d'AdvancedIA plus récent, inconnu
 -- de cette version), 'layout' (fichier du pont illisible).
@@ -248,7 +248,7 @@ local failures={network='echec reseau',rate='GitHub refuse temporairement (limit
  driving='refusee en conduite (disponible a l arret : emplacement des stands ou pause)',
  aaiOld='refusee : mettez d abord AdvancedIA a jour (pont plus ancien que celui de cette version)',
  aaiNewer='refusee : AdvancedIA installe publie un pont plus recent, inconnu de cette version',
- aaiMissing='refusee : AdvancedIA introuvable (SpotterEnginer ne fonctionne qu avec lui)',
+ aaiMissing='refusee : AdvancedIA introuvable (SpotterEngineer ne fonctionne qu avec lui)',
  layout='refusee : fichier du pont illisible'}
 -- kept : la version installée n'a pas changé (dit au journal) ; detail : erreur de CSP ou fichier en cause.
 local function fail(u,code,status,detail,kept)
@@ -617,9 +617,9 @@ function M.fresh(u)
 end
 -- Une version plus récente est proposée (bouton de l'en-tête, alerte de l'accueil, information de l'overlay).
 function M.offered(u) return M.fresh(u) and (u.phase=='available' or u.phase=='failed' and u.error~='format' and u.error~='rate') end
--- État publié pour AdvancedIA (contrat v1 avec sa session, ac.store('SpotterEnginer.update')) : 200 octets au plus,
+-- État publié pour AdvancedIA (contrat v1 avec sa session, ac.store('SpotterEngineer.update')) : 200 octets au plus,
 -- « v=1;installed=…;latest=…;state=available|uptodate|checking|error|incompatible[;needs=…] ».
-M.statusKey='SpotterEnginer.update'
+M.statusKey='SpotterEngineer.update'
 -- Appelé à chaque image : le texte n'est refait que si l'état a changé (vue, phase, u.serial, version publiée).
 -- Les vues sans état propre publient ce qui est vrai, jamais le texte d'avant resté dans ac.store : redémarrage en
 -- cours et compte rendu d'une mise à jour (la version en place est la dernière connue : « uptodate », ou « available »

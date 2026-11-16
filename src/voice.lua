@@ -47,7 +47,7 @@ local function note(v,item,now,spoken)
  local log=v.log
  log[#log+1]=entry
  if #log>v.logMax then table.remove(log,1) end
- -- Journal de session (SpotterEnginer.lua) : jamais d'erreur remontée à la radio.
+ -- Journal de session (SpotterEngineer.lua) : jamais d'erreur remontée à la radio.
  if v.onEvent then pcall(v.onEvent,'radio',entry) end
  return entry
 end
@@ -93,7 +93,7 @@ local function markDone(v,item,now)
  v.done[item.key]=now
  if item.sense or item.text then
   v.heard[item.sense or item.text]=now
-  -- Mémoire des annonces entendues gardée au rechargement de l'app (SpotterEnginer.lua) : jamais d'erreur remontée.
+  -- Mémoire des annonces entendues gardée au rechargement de l'app (SpotterEngineer.lua) : jamais d'erreur remontée.
   if v.onHeard then pcall(v.onHeard,item) end
  end
 end
@@ -276,7 +276,7 @@ function M.step(v,now)
 end
 function M.busy(v) return v.current~=nil end
 -- Annonces écartées de la file (drop(q) vrai) ; cut : celle en cours aussi, si elle l'est. Liaison suspendue ou perdue
--- (tout sauf l'essai de la voix), rôle coupé, langue changée (SpotterEnginer.lua).
+-- (tout sauf l'essai de la voix), rôle coupé, langue changée (SpotterEngineer.lua).
 function M.purge(v,drop,cut)
  for i=#v.queue,1,-1 do if drop(v.queue[i]) then table.remove(v.queue,i) end end
  if cut and v.current and drop(v.current) then stopCurrent(v) end

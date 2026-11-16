@@ -1,15 +1,15 @@
-"""Copie de travail git de SpotterEnginer, tenue hors du dossier de l'app (git y écrit à chaque commande : CSP rechargerait
+"""Copie de travail git de SpotterEngineer, tenue hors du dossier de l'app (git y écrit à chaque commande : CSP rechargerait
 l'app en jeu) : recopie le dossier de l'app dans la copie de travail, fichier par fichier, sans les fichiers ignorés
 (.gitignore de l'app), et retire de la copie ce qui n'existe plus dans l'app. Rien n'est écrit dans le dossier de l'app.
 Garde-fous (un autre dépôt passé par erreur serait vidé) :
-- la cible doit être le dépôt de SpotterEnginer : son manifest.ini porte NAME=SpotterEnginer, ou elle est vide (rien
+- la cible doit être le dépôt de SpotterEngineer : son manifest.ini porte NAME=SpotterEngineer, ou elle est vide (rien
   d'autre que .git*, premier envoi) ; sinon rien n'est écrit ;
 - jamais retirés : .git, tout ce dont le nom commence par .git à la racine (.gitattributes, .github/…) et les fichiers
   propres au dépôt, listés dans .syncrepo-keep à sa racine (un motif par ligne, comme .gitignore ; « dossier/ » garde
   tout un dossier) ;
 - --dry-run : dit ce qui serait copié et retiré, sans rien écrire.
 Usage : python tools/sync_repo.py <copie de travail> [--dry-run]
-        (par exemple C:/Users/<vous>/Documents/GitHub/SpotterEnginer)
+        (par exemple C:/Users/<vous>/Documents/GitHub/SpotterEngineer)
 Ensuite, dans la copie : git status, git add -A, git commit, git push."""
 from pathlib import Path
 import fnmatch
@@ -17,7 +17,9 @@ import shutil
 import sys
 
 APP = Path(__file__).resolve().parents[1]
-NAME = 'SpotterEnginer'
+NAME = 'SpotterEngineer'
+# Ancien nom (jusqu'à Beta 2.0.0) : un dépôt pas encore synchronisé depuis le renommage reste reconnu.
+OLD_NAMES = {'SpotterEnginer'}
 KEEP_FILE = '.syncrepo-keep'
 
 
@@ -68,7 +70,7 @@ def main():
     assert manifest_name(APP / 'manifest.ini') == NAME, 'manifest.ini de l\'app : NAME inattendu'
     found = manifest_name(repo / 'manifest.ini')
     blank = all(p.name.startswith('.git') for p in repo.iterdir())
-    assert found == NAME or blank, (f'{repo} n\'est pas le dépôt de {NAME} (manifest.ini : NAME={found}) et n\'est pas vide : '
+    assert found == NAME or found in OLD_NAMES or blank, (f'{repo} n\'est pas le dépôt de {NAME} (manifest.ini : NAME={found}) et n\'est pas vide : '
                                     'rien n\'est écrit')
     ignore = patterns_of(APP / '.gitignore')
     keep = patterns_of(repo / KEEP_FILE)

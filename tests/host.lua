@@ -94,7 +94,7 @@ function ui.drawImage(path,p1,p2) assert(type(path)=='string','image path'); ass
 function ui.pushStyleColor() end
 function ui.popStyleColor() end
 -- ac
-ac={FolderID={ACAppsLua=1,Logs=2},AudioChannel={Main='main'},StructItem={}}
+ac={FolderID={ACAppsLua=1,Logs=2,ExtCfgState=3},AudioChannel={Main='main'},StructItem={}}
 -- Mémoire de la partie : vidée à la relance du jeu (ici : l'horloge de l'hôte revenue en arrière depuis la dernière
 -- écriture) ; gardée au rechargement de l'app dans la même partie.
 H.store={}; H.storeAt=0
@@ -102,8 +102,8 @@ local function sameGame() if H.clock<H.storeAt then H.store={} end; H.storeAt=H.
 function ac.store(k,v) sameGame(); H.store[k]=v end
 function ac.load(k) sameGame(); return H.store[k] end
 H.appsDir='C:/AC/apps/lua'
-function ac.dirname() return H.appsDir..'/SpotterEnginer' end
-function ac.getFolder() return H.appsDir end
+function ac.dirname() return H.appsDir..'/SpotterEngineer' end
+function ac.getFolder(id) if id==3 then return H.stateDir or 'C:/nostate' end return H.appsDir end
 function ac.log(...) H.logs[#H.logs+1]=table.concat({...},' ') end
 function ac.getUI() return {windowSize=vec2(1920,1080),currentDesktop=H.desktop or 0} end
 -- Touches tenues : H.keys[code]=true.

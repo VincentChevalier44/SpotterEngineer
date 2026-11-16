@@ -8,7 +8,7 @@ the content, not the extension). For another voice, record files with the same n
 nothing, the call is then only written on the overlay radio.
 This list is rebuilt by `python tests/run.py` from `src/catalog.lua`.
 
-1628 files in all (2 languages).
+1660 files in all (2 languages).
 
 ## Calls
 
@@ -265,6 +265,22 @@ This list is rebuilt by `python tests/run.py` from `src/catalog.lua`.
 | 251 | `251_course_sprint.wav` | Course sprint, pas d'arrêt obligatoire. | `251_sprint_race.wav` | Sprint race, no mandatory stop. |
 | 252 | `252_depart_interrompu.wav` | Départ interrompu, on refait un tour. Nouveau départ arrêté ensuite. | `252_start_aborted.wav` | Start aborted, one more lap. Then a new standing start. |
 | 253 | `253_depart_interrompu_lance.wav` | Départ interrompu, on refait un tour. Départ lancé ensuite. | `253_start_aborted_rolling.wav` | Start aborted, one more lap. Then a rolling start. |
+| 254 | `254_limiteur.wav` | Limiteur, limiteur ! | `254_limiter.wav` | Limiter, limiter! |
+| 255 | `255_voie_rouverte.wav` | La voie des stands est rouverte. | `255_pit_lane_open.wav` | Pit lane is open again. |
+| 256 | `256_rends_maintenant.wav` | Rends la place maintenant, sinon c'est la pénalité ! | `256_give_back_now.wav` | Give the place back now, or it's a penalty! |
+| 257 | `257_limites_avertissement.wav` | Limites de piste, avertissement | `257_track_limits_warning.wav` | Track limits, warning |
+| 258 | `258_sur.wav` | sur | `258_of.wav` | of |
+| 259 | `259_dernier_avertissement_limites.wav` | Dernier avertissement ! La prochaine coupe, c'est la pénalité. | `259_last_track_warning.wav` | Last warning! Next cut is a penalty. |
+| 260 | `260_devant_abandonne.wav` | La voiture devant abandonne. | `260_car_ahead_retired.wav` | Car ahead has retired. |
+| 261 | `261_derriere_abandonne.wav` | La voiture derrière abandonne. | `261_car_behind_retired.wav` | Car behind has retired. |
+| 262 | `262_plus_que.wav` | Plus que | `262_only.wav` | Only |
+| 263 | `263_penalite_temps.wav` | Pénalité en temps : | `263_time_penalty.wav` | Time penalty: |
+| 264 | `264_marge_penalite.wav` | Avec la pénalité, il te faut plus d'avance sur la voiture derrière. Écart : | `264_penalty_margin.wav` | With the penalty, you need more of a gap to the car behind. Gap: |
+| 265 | `265_box_rate.wav` | On a raté le box, on recalcule. | `265_missed_box.wav` | We missed the box, recalculating. |
+| 266 | `266_derriere_rentre.wav` | La voiture derrière rentre aux stands. | `266_car_behind_pitting.wav` | Car behind is pitting. |
+| 267 | `267_ressort_derriere.wav` | Il ressort derrière toi, à | `267_out_behind.wav` | He's out behind you, at |
+| 268 | `268_ressort_devant.wav` | Il ressort devant toi, à | `268_out_ahead.wav` | He's out ahead of you, at |
+| 269 | `269_meilleur_tour_course.wav` | Meilleur tour en course, superbe ! | `269_fastest_lap.wav` | Fastest lap of the race, great job! |
 
 ## Numbers
 

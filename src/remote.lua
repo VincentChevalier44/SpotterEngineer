@@ -1,9 +1,9 @@
--- Port de la mise à jour de SpotterEnginer : repris d'AdvancedIA (Beta 1.51 ; mentions « Beta 1.xx » : son historique),
+-- Port de la mise à jour de SpotterEngineer : repris d'AdvancedIA (Beta 1.51 ; mentions « Beta 1.xx » : son historique),
 -- sans les restes de ses Beta 1.33/1.34 (repère et compte rendu dans le dossier de l'app), plus la lecture du pont
 -- d'AdvancedIA installé (companionLayout) et d'un fichier d'une source (sourceText). Réseau, empreinte, zips et
 -- fichiers de CSP, seulement ici.
 -- Dossier de travail hors de l'app, dans cfg/extension/state de CSP (jamais rechargé en direct) :
---   next/apps/lua/SpotterEnginer/  paquet téléchargé, extrait et comparé au paquet ;
+--   next/apps/lua/SpotterEngineer/  paquet téléchargé, extrait et comparé au paquet ;
 --   current/                     fichiers de l'app que la copie va remplacer, copiés juste avant elle ;
 --   backup/                      version précédente (current promu après une installation réussie) ;
 --   installing.txt               repère d'une copie en cours (écrit et relu juste avant, levé juste après) ;
@@ -24,7 +24,7 @@
 -- (fichiers de l'app tenus ouverts à rendre : clips de voix préchargés).
 -- Le dossier de l'app (sur un autre disque que Documents, le plus souvent) ne reçoit que la copie finale : chaque fichier
 -- copié à côté (.new) puis mis en place d'un seul coup (même disque), surveillance des fichiers de CSP suspendue puis
--- rétablie, src/ d'abord, SpotterEnginer.lua puis le manifeste en dernier.
+-- rétablie, src/ d'abord, SpotterEngineer.lua puis le manifeste en dernier.
 -- Sans les fonctions de CSP (tests, banc de mesure), le port est inerte : rien n'est lu, écrit ni demandé.
 local Update=require('src/update')
 local M={}
@@ -53,9 +53,9 @@ local function scan(dir,rel,out,dirs)
  end)
  return out
 end
--- Ordre de la copie finale : src/ d'abord, les autres fichiers, puis SpotterEnginer.lua, le manifeste en dernier.
+-- Ordre de la copie finale : src/ d'abord, les autres fichiers, puis SpotterEngineer.lua, le manifeste en dernier.
 local function rank(path)
- if path=='manifest.ini' then return 4 elseif path=='SpotterEnginer.lua' then return 3 elseif path:sub(1,4)=='src/' then return 1 end
+ if path=='manifest.ini' then return 4 elseif path=='SpotterEngineer.lua' then return 3 elseif path:sub(1,4)=='src/' then return 1 end
  return 2
 end
 local function ordered(list)
@@ -87,7 +87,7 @@ M.parseList=parseList
 -- Bibliothèques de CSP lues sans erreur quand elles manquent (tests, ancien CSP).
 local function lib(name) local t=rawget(_G,name); return type(t)=='table' and t or nil end
 local needed={'load','save','fileExists','deleteFile','copyFile','move','createDir','createFileDir','scanDir','scanZip','loadFromZip','extractFromZipAsync'}
-M.work='SpotterEnginer-update'
+M.work='SpotterEngineer-update'
 M.list='.files'
 M.over='.over'
 -- Comparaison du paquet extrait : durée d'une tranche (s) ; la suite à l'image suivante (p.step).
@@ -214,7 +214,7 @@ function M.new(onRelease)
  function p.failed() return load(failedFile) end
  function p.clearFailed() return delete(failedFile) end
  -- Journal de CSP (custom_shaders_patch.log) : la reprise au chargement y est dite même si l'app ne charge pas ensuite.
- function p.log(text) if ac and callable(ac.log) then pcall(ac.log,'SpotterEnginer: '..tostring(text)) end end
+ function p.log(text) if ac and callable(ac.log) then pcall(ac.log,'SpotterEngineer: '..tostring(text)) end end
  -- Pont d'AdvancedIA installé (texte de son src/bridge_layout.lua, lecture seule), ou nil s'il est absent : premier
  -- dossier connu qui a un manifeste (Update.companion).
  function p.companionLayout()

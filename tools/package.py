@@ -1,12 +1,12 @@
-"""Paquet de distribution de SpotterEnginer (comme celui d'AdvancedIA) : seulement ce que le jeu charge (point d'entrée,
-manifeste, icône, modules, signal radio, voix, polices) et les notices du pilote, sous apps/lua/SpotterEnginer/ ;
-SpotterEnginer-<version>.zip et son empreinte SpotterEnginer-<version>.sha256 (« <sha256>  <nom du zip> »). Les tests,
+"""Paquet de distribution de SpotterEngineer (comme celui d'AdvancedIA) : seulement ce que le jeu charge (point d'entrée,
+manifeste, icône, modules, signal radio, voix, polices) et les notices du pilote, sous apps/lua/SpotterEngineer/ ;
+SpotterEngineer-<version>.zip et son empreinte SpotterEngineer-<version>.sha256 (« <sha256>  <nom du zip> »). Les tests,
 les outils et la documentation technique n'y sont jamais.
 Le paquet est ensuite contrôlé par le vrai module de mise à jour (src/update.lua, sous lupa), comme l'app le fera :
 chemins sûrs, fichiers indispensables, modules requis, version du manifeste, nom accepté par M.release, taille bornée
 (avec une marge : la borne est celle des versions déjà installées), pont compatible avec AdvancedIA installé. Chaque
 module Lua du paquet est compilé et les deux modules de la mise à jour sont chargés (contrat de démarrage du haut de
-SpotterEnginer.lua) : une version dont ces modules ne se chargent pas ne pourrait ni se défaire ni se mettre à jour.
+SpotterEngineer.lua) : une version dont ces modules ne se chargent pas ne pourrait ni se défaire ni se mettre à jour.
 Rien n'est écrit dans le dossier de l'app (CSP la recharge en jeu dès qu'un de ses fichiers change) : paquet dans le
 dossier temporaire par défaut, dossier de sortie refusé s'il est dans l'app.
 Usage : python tools/package.py [dossier de sortie]"""
@@ -18,7 +18,7 @@ import zipfile
 from lupa import LuaRuntime
 
 APP = Path(__file__).resolve().parents[1]
-PREFIX = 'apps/lua/SpotterEnginer/'
+PREFIX = 'apps/lua/SpotterEngineer/'
 NOTICES = ['README.md', 'CHANGELOG.md', 'COMPATIBILITY.md', 'LICENSE']
 # Part de M.sizeMax (src/update.lua) qu'un paquet peut atteindre : au-delà, les versions déjà installées (qui portent
 # leur propre borne) seraient bientôt incapables de l'installer seules ; relever la borne ne les atteint pas.
@@ -32,7 +32,7 @@ def runtime():
 
 
 def collect():
-    files = [APP / name for name in ['SpotterEnginer.lua', 'manifest.ini', 'icon.png', *NOTICES]]
+    files = [APP / name for name in ['SpotterEngineer.lua', 'manifest.ini', 'icon.png', *NOTICES]]
     for folder, patterns in [('src', ['*.lua']), ('sounds', ['*.wav']), ('vox', ['*/*.wav', '*/*/*.wav', '*/*/*/*.wav']), ('fonts', ['*/*.ttf', '*/OFL.txt'])]:
         for pattern in patterns:
             files.extend((APP / folder).glob(pattern))
@@ -46,7 +46,7 @@ def main():
     up = lua.eval("(require('src/update'))")
     version = up.manifestVersion((APP / 'manifest.ini').read_text(encoding='utf-8'))
     assert version, 'version du manifeste illisible'
-    out = (Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir()) / 'SpotterEnginer-dist').resolve()
+    out = (Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir()) / 'SpotterEngineer-dist').resolve()
     assert out != APP and APP not in out.parents, f'dossier de sortie dans le dossier de l\'app (rechargée en jeu) : {out}'
     out.mkdir(parents=True, exist_ok=True)
     zip_path = out / f'{up.assetPrefix}{version}.zip'

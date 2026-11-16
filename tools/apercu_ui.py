@@ -15,7 +15,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(APP / 'tests'))
 import run  # noqa: E402
 
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir()) / 'SpotterEnginer_apercus'
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir()) / 'SpotterEngineer_apercus'
 FONTS = {
     ('Barlow', 'Regular', ''): 'barlow/Barlow-Regular.ttf', ('Barlow', 'SemiBold', ''): 'barlow/Barlow-SemiBold.ttf',
     ('Barlow Condensed', 'SemiBold', ''): 'barlowcondensed/BarlowCondensed-SemiBold.ttf',

@@ -1,4 +1,4 @@
-"""Tests de SpotterEnginer hors du jeu (Python + lupa) : modules purs chargés sous globales strictes (toute lecture ou
+"""Tests de SpotterEngineer hors du jeu (Python + lupa) : modules purs chargés sous globales strictes (toute lecture ou
 écriture d'une globale non déclarée est une erreur, comme dans les tests d'AdvancedIA), puis chaque fichier
 tests/*_spec.lua (table de fonctions de test). Vérifie aussi :
 - que src/bridge_layout.lua est identique au caractère près dans AdvancedIA (ou ACAdvancedIA) et ici ;
@@ -71,7 +71,7 @@ def runtime(host=False):
         g.VOX = lua.table_from(vox_files())
         g.DOC_BRIDGE = doc_bridge()
         g.INSTALLED_BRIDGE = installed_bridge()
-        g.APP_SOURCE = (APP / 'SpotterEnginer.lua').read_text(encoding='utf-8')
+        g.APP_SOURCE = (APP / 'SpotterEngineer.lua').read_text(encoding='utf-8')
         g.APP_MANIFEST = (APP / 'manifest.ini').read_text(encoding='utf-8')
     # Pont réel d'AdvancedIA, chargé sous le nom 'aai/bridge' (il lit src/bridge_layout, identique dans les deux apps).
     bridge = AAI / 'src' / 'bridge.lua'
@@ -111,7 +111,7 @@ def runtime(host=False):
 
 def syntax():
     lua = LuaRuntime()
-    files = [APP / 'SpotterEnginer.lua', *sorted((APP / 'src').glob('*.lua'))]
+    files = [APP / 'SpotterEngineer.lua', *sorted((APP / 'src').glob('*.lua'))]
     bad = []
     for f in files:
         if not f.exists():
@@ -127,7 +127,7 @@ def shipped_requires():
     un module de l'app, et les fichiers indispensables (M.required) existent. Renvoie '' ou la raison."""
     lua = runtime()
     up = lua.eval("(require('src/update'))")
-    files = ['SpotterEnginer.lua', 'manifest.ini', *[p.relative_to(APP).as_posix() for p in sorted((APP / 'src').glob('*.lua'))]]
+    files = ['SpotterEngineer.lua', 'manifest.ini', *[p.relative_to(APP).as_posix() for p in sorted((APP / 'src').glob('*.lua'))]]
     entries = lua.table_from([up.prefix + f for f in files])
     ok = up.requires(entries, lambda name: (APP / name[len(up.prefix):]).read_text(encoding='utf-8'))
     if not (ok is True or (isinstance(ok, tuple) and ok[0])):
@@ -137,10 +137,23 @@ def shipped_requires():
     return ''
 
 
+def layout_code(text):
+    """Code du format sans commentaires ni lignes vides : la version publiée d'AdvancedIA retire ses commentaires."""
+    out = []
+    for line in text.splitlines():
+        line = line.split('--', 1)[0].rstrip() if not line.lstrip().startswith('--') else ''
+        if line.strip():
+            out.append(line)
+    return out
+
+
 def layout_identical():
-    a = (APP / 'src' / 'bridge_layout.lua').read_bytes()
+    """src/bridge_layout.lua : code identique dans AdvancedIA et ici (commentaires exclus, absents des versions publiées)."""
     p = AAI / 'src' / 'bridge_layout.lua'
-    return p.exists() and a == p.read_bytes()
+    if not p.exists():
+        return False
+    mine = layout_code((APP / 'src' / 'bridge_layout.lua').read_text(encoding='utf-8'))
+    return mine == layout_code(p.read_text(encoding='utf-8'))
 
 
 def recording_list():
@@ -197,10 +210,10 @@ def main():
         print(f'PASS syntax ({count} files)')
     checks += 1
     if layout_identical():
-        print(f'PASS bridge_layout identical in {AAI.name} and SpotterEnginer')
+        print(f'PASS bridge_layout identical in {AAI.name} and SpotterEngineer')
     else:
         failures += 1
-        print(f'FAIL bridge_layout differs between {AAI.name} and SpotterEnginer (or missing)')
+        print(f'FAIL bridge_layout differs between {AAI.name} and SpotterEngineer (or missing)')
     checks += 1
     why = shipped_requires()
     if why:

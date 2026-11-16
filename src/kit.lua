@@ -18,7 +18,7 @@ function W.colors()
    control=hex('#1D2027'),controlHover=hex('#262A32'),controlActive=hex('#2E333C'),disabled=hex('#16181C'),disabledText=hex('#5C626C'),
    rule=hex('#2A2E36'),ruleSoft=hex('#1A1D23'),ruleHead=hex('#23272E'),ruleHover=hex('#3A404A'),rowAlt=hex('#14161A'),
    text=hex('#EEF0F3'),soft=hex('#C9CDD3'),body=hex('#DDE0E5'),label=hex('#8D94A0'),muted=hex('#9AA1AC'),group=hex('#6B7280'),off=hex('#7A818C'),
-   -- Accent d'action de SpotterEnginer : pervenche du casque de l'app (logo), à la place du cyan d'AdvancedIA (même
+   -- Accent d'action de SpotterEngineer : pervenche du casque de l'app (logo), à la place du cyan d'AdvancedIA (même
    -- rôle, mêmes noms de jetons : chaque app du thème a la couleur de son casque, comme le sarcelle de SuperHUD).
    cyan=hex('#A09BFF'),cyanHover=hex('#B5B1FF'),cyanActive=hex('#8781F2'),cyanText=hex('#C4C1FF'),select=hex('#16143A'),selectHover=hex('#1D1A4A'),
    selectLine=hex('#37327A'),ink=hex('#100C2E'),outline=hex('#121028'),outlineHover=hex('#19163A'),outlineActive=hex('#0E0C20'),

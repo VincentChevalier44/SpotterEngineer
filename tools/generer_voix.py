@@ -1,4 +1,4 @@
-"""Génère les clips de voix de SpotterEnginer avec la même voix que les clips d'origine (script generer_voix.py des
+"""Génère les clips de voix de SpotterEngineer avec la même voix que les clips d'origine (script generer_voix.py des
 voix FIA) : edge-tts, voix fr-FR-HenriNeural et en-US-GuyNeural pour l'ingénieur (voix féminine du spotter : plus bas). La liste, les textes exacts, les langues, les
 sous-dossiers et leurs bornes viennent de src/catalog.lua (clips 01 à 34 d'origine, clips 35 et plus, nombres dans
 vox/<LANGUE>/num/, durées dans vox/<LANGUE>/sec/, positions « Tu es P7 » dans vox/<LANGUE>/pos/) ; les durées sont

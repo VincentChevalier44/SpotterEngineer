@@ -28,10 +28,17 @@ local function background(a)
  if not b then local p=W.colors().panel; b=rgbm(p.r,p.g,p.b,k/100); backs[k]=b end
  return b
 end
+-- Données à montrer : AdvancedIA connecté, ou en rediffusion (il se suspend alors mais publie encore son dernier état ;
+-- réglage « Masquer en rediffusion » coupé : overlays affichés avec ces données ; relecture du 15/11/2026).
+local function live(app)
+ local s=app.link.state
+ return s=='connected' or s=='suspended' and app.link.reason=='replay' and app.link.d~=nil and not app.cfg.hideReplay
+end
+M.live=live
 -- Couleur de la bande décorative : état décidé par AdvancedIA (drapeau du joueur), pervenche de l'app sinon.
 local function accent(app)
  local c=W.colors(); local d=app.link.d
- if not d or app.link.state~='connected' then return c.marker end
+ if not d or not live(app) then return c.marker end
  if d.red then return c.flagRed end
  if d.neutral or d.zone or d.yellow then return c.flagYellow end
  local k=d.panelKind
@@ -122,7 +129,7 @@ local function waiting(app,o,f,title)
  W.dotChip(state,12,t,kind)
  return h
 end
-local function idle(app) return not app.cfg.enabled or app.link.state~='connected' end
+local function idle(app) return not app.cfg.enabled or not live(app) end
 M.draw={}
 -- Morceaux du dessin, fonctions de module (aucune fermeture créée à chaque image).
 local function sideBar(c,y,on,x,label,left)
@@ -592,13 +599,13 @@ end
 -- Noms des réglages de chaque overlay et identifiants de fenêtre par bureau : faits une fois.
 local K={}
 for _,o in ipairs(Config.overlays) do K[o]={show=o..'Show',locked=o..'Locked',scale=o..'Scale',x=o..'X',y=o..'Y',ids={}} end
-local function windowId(o,d) local ids=K[o].ids; local id=ids[d]; if not id then id='SpotterEnginer_d'..d..'_'..o; ids[d]=id end; return id end
+local function windowId(o,d) local ids=K[o].ids; local id=ids[d]; if not id then id='SpotterEngineer_d'..d..'_'..o; ids[d]=id end; return id end
 function M.hud(v,app)
  if not (type(ui.transparentWindow)=='function' or type(ui.transparentWindow)=='cdata') then return end
  v.err=nil
  local cfg=app.cfg; local F=app.F; local me=F.cars and F.cars[F.player]
  local hidden=not cfg.enabled or not cfg.overlaysOn or cfg.hideReplay and F.replay or cfg.hidePits and me and me.valid and me.pitlane
- local connected=app.link.state=='connected'
+ local connected=live(app)
  local screen=app.screen and app.screen() or nil
  local sw=screen and screen.x or Config.screenDefault.x; local sh=screen and screen.y or Config.screenDefault.y
  -- Beta 2.0.0 : blocs de SuperHUD sur ce bureau (installé, réglage, clé vivante), puis nos overlays déjà placés : une

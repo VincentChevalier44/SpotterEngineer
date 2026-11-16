@@ -21,7 +21,7 @@
 -- l'écriture d'un fichier, effacés seulement par io.deleteDir (vides) ; un dossier déplacé d'un bloc refuse une
 -- destination qui existe déjà, même vide.
 local M={}
-M.prefix='apps/lua/SpotterEnginer/'
+M.prefix='apps/lua/SpotterEngineer/'
 -- Pont partagé (src/bridge_layout.lua), version 1, dans l'app, dans le paquet et chez AdvancedIA.
 M.layout='local L={}\nL.version=1\nreturn L\n'
 function M.install(o)
@@ -33,7 +33,7 @@ function M.install(o)
  local appRoot,stateRoot=f.root..'/',f.state..'/'
  local function inApp(path) return type(path)=='string' and (path==f.root or path:sub(1,#appRoot)==appRoot) end
  local function inState(path) return type(path)=='string' and (path==f.state or path:sub(1,#stateRoot)==stateRoot) end
- -- AdvancedIA installé à côté de l'app (même dossier parent), dont SpotterEnginer lit le pont (src/bridge_layout.lua).
+ -- AdvancedIA installé à côté de l'app (même dossier parent), dont SpotterEngineer lit le pont (src/bridge_layout.lua).
  local aaiRoot=(f.root:match('^(.*)/[^/]+$') or '')..'/AdvancedIA/'
  f.aaiRoot=aaiRoot
  local function inAai(path) return type(path)=='string' and path:sub(1,#aaiRoot)==aaiRoot end
@@ -195,8 +195,8 @@ function M.install(o)
  end
  -- Fichiers de l'app installée (version, contenu des fichiers) et paquet publié (zip, empreinte, réponses).
  function f.app(version,extra)
-  f.files[appRoot..'manifest.ini']='[ABOUT]\nNAME=SpotterEnginer\nREQUIRED_VERSION=0.1\nVERSION='..version..'\n'
-  f.files[appRoot..'SpotterEnginer.lua']='main '..version; f.files[appRoot..'src/update.lua']='update '..version
+  f.files[appRoot..'manifest.ini']='[ABOUT]\nNAME=SpotterEngineer\nREQUIRED_VERSION=0.1\nVERSION='..version..'\n'
+  f.files[appRoot..'SpotterEngineer.lua']='main '..version; f.files[appRoot..'src/update.lua']='update '..version
   f.files[appRoot..'src/remote.lua']='remote '..version; f.files[appRoot..'src/ui.lua']='ui '..version; f.files[appRoot..'sounds/beep.wav']='wav'
   f.files[appRoot..'src/bridge_layout.lua']=M.layout
   -- AdvancedIA installé, même pont.
@@ -207,18 +207,18 @@ function M.install(o)
   options=options or {}
   -- Paquet binaire : l'identifiant du zip porte un octet nul, comme un vrai corps de réponse.
   local number=version:match('[%d%.]+$')
-  local entries={[M.prefix..'manifest.ini']='[ABOUT]\nVERSION='..version..'\n',[M.prefix..'SpotterEnginer.lua']='main '..version,
+  local entries={[M.prefix..'manifest.ini']='[ABOUT]\nVERSION='..version..'\n',[M.prefix..'SpotterEngineer.lua']='main '..version,
    [M.prefix..'src/update.lua']='update '..version,[M.prefix..'src/remote.lua']='remote '..version,[M.prefix..'src/ui.lua']='ui '..version,
    [M.prefix..'src/new.lua']='new '..version,[M.prefix..'sounds/beep.wav']='wav',[M.prefix..'src/bridge_layout.lua']=M.layout}
   for k,v in pairs(options.entries or {}) do entries[k]=v or nil end
   f.count=f.count+1; local id='ZIP\0#'..f.count; f.zips[id]=entries; local hash=options.hash or string.rep('ab',32)
   f.sha[id]=options.actual or hash
-  local base='https://github.com/VincentChevalier44/SpotterEnginer/releases/download/v'..number..'/'
-  local name='SpotterEnginer-'..number
+  local base='https://github.com/VincentChevalier44/SpotterEngineer/releases/download/v'..number..'/'
+  local name='SpotterEngineer-'..number
   f.json['release '..version]={tag_name='v'..number,draft=false,prerelease=false,published_at='2026-11-05T10:00:00Z',
-   html_url='https://github.com/VincentChevalier44/SpotterEnginer/releases/tag/v'..number,body='## Beta '..number..'\n\n- **Nouveau** point\n- Second point\n',
+   html_url='https://github.com/VincentChevalier44/SpotterEngineer/releases/tag/v'..number,body='## Beta '..number..'\n\n- **Nouveau** point\n- Second point\n',
    assets={{name=name..'.zip',size=options.size or #id,browser_download_url=base..name..'.zip'},{name=name..'.sha256',size=90,browser_download_url=base..name..'.sha256'}}}
-  f.responses['https://api.github.com/repos/VincentChevalier44/SpotterEnginer/releases/latest']={status=options.apiStatus or 200,body='release '..version,err=options.apiErr}
+  f.responses['https://api.github.com/repos/VincentChevalier44/SpotterEngineer/releases/latest']={status=options.apiStatus or 200,body='release '..version,err=options.apiErr}
   f.responses[base..name..'.sha256']={status=200,body=hash..'  '..name..'.zip\n'}
   -- Téléchargement servi par une redirection (release-assets.githubusercontent.com), suivie comme le fait WinHTTP.
   local asset='https://release-assets.githubusercontent.com/'..name..'.zip'
@@ -226,8 +226,8 @@ function M.install(o)
   f.responses[asset]={status=options.zipStatus or 200,body=options.body or id,err=options.zipErr}
   return id
  end
- -- Chemins du dossier de travail (src/remote.lua : <state>/SpotterEnginer-update).
- f.work=stateRoot..'SpotterEnginer-update'
+ -- Chemins du dossier de travail (src/remote.lua : <state>/SpotterEngineer-update).
+ f.work=stateRoot..'SpotterEngineer-update'
  function f.find(x) for i,c in ipairs(f.calls) do if c==x then return i end end end
  function f.last(prefix) local at; for i,c in ipairs(f.calls) do if c:sub(1,#prefix)==prefix then at=i end end; return at end
  return f

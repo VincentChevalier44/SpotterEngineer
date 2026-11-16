@@ -1,7 +1,7 @@
 -- Intégration sur l'hôte CSP factice (tests/host.lua) : AdvancedIA factice qui publie avec son vrai pont
--- (src/bridge.lua, et le constructeur de structure de docs/PONT_ACADVANCEDIA.md), SpotterEnginer.lua réel, course
+-- (src/bridge.lua, et le constructeur de structure de docs/PONT_ACADVANCEDIA.md), SpotterEngineer.lua réel, course
 -- simulée de six voitures ; fenêtre de réglages et trois overlays dessinés. Variables données par tests/run.py :
--- HOST (hôte), VOX (clips présents), DOC_BRIDGE (code du raccordement d'applier.lua), APP_SOURCE (SpotterEnginer.lua),
+-- HOST (hôte), VOX (clips présents), DOC_BRIDGE (code du raccordement d'applier.lua), APP_SOURCE (SpotterEngineer.lua),
 -- APP_MANIFEST (manifest.ini de l'app).
 local H=HOST
 local T={}
@@ -20,11 +20,12 @@ end
 local function setup(withBridge)
  H.files={}
  installAai('AdvancedIA',withBridge,'Beta 1.49')
- for _,rel in ipairs(VOX) do H.files[H.appsDir..'/SpotterEnginer/vox/'..rel]='mp3' end
- H.files[H.appsDir..'/SpotterEnginer/sounds/radio.wav']='wav'
- H.files[H.appsDir..'/SpotterEnginer/manifest.ini']=APP_MANIFEST
+ for _,rel in ipairs(VOX) do H.files[H.appsDir..'/SpotterEngineer/vox/'..rel]='mp3' end
+ H.files[H.appsDir..'/SpotterEngineer/sounds/radio.wav']='wav'
+ for k,v in pairs(H.preFiles or {}) do H.files[k]=v end
+ H.files[H.appsDir..'/SpotterEngineer/manifest.ini']=APP_MANIFEST
  for k,v in pairs(H.extraFiles or {}) do H.files[k]=v end
- H.files[H.appsDir..'/SpotterEnginer/icon.png']='png'; H.images=0; H.windows=0; H.windowIds={}; H.audio={}; H.minEngine=1
+ H.files[H.appsDir..'/SpotterEngineer/icon.png']='png'; H.images=0; H.windows=0; H.windowIds={}; H.audio={}; H.minEngine=1
  H.shared={}; H.played={}; H.logs={}; H.clock=0; H.texts={}; if not H.keepStorage then H.storage={} end; H.desktop=H.startDesktop or 0
  for k in pairs(script) do script[k]=nil end
 end
@@ -72,8 +73,8 @@ local function race(withBridge,seconds,draw,flipTrack)
  local e,frame=engine(count)
  local port=withBridge and aaiPort(bridgeSource).bridgeOpen(Layout) or nil
  local b=Bridge.new('Beta 1.46')
- -- Script réel de SpotterEnginer.
- assert(load(APP_SOURCE,'@SpotterEnginer.lua'))()
+ -- Script réel de SpotterEngineer.
+ assert(load(APP_SOURCE,'@SpotterEngineer.lua'))()
  local dt=H.raceDt or 1/30
  local lastLap={}
  local pit={state='out'} -- arrêt de la voiture 3 vers 1,95 tour : voie à 60 km/h, 6 s immobile
@@ -150,7 +151,7 @@ function T.full_race_with_bridge()
  check(texted('FENÊTRE') and texted('^T%d+') or texted('Aucun arrêt'),'strategy window drawn')
  check(texted('GAUCHE'),'spotter overlay sides')
  check((H.images or 0)>0,'logo drawn in the header')
- check(texted('SPOTTER') and texted('ENGINER'),'brand name in the header')
+ check(texted('SPOTTER') and texted('ENGINEER'),'brand name in the header')
 end
 -- Arrivée (en jeu le 10/11/2026) : AdvancedIA suspend le pont dès la ligne (garde « finished ») et publie son résultat
 -- 0,4 s plus tard ; le damier et la place sont dits à la ligne, le bilan quelques secondes après, sans attendre la
@@ -174,13 +175,14 @@ function T.debrief_at_the_line_while_suspended()
  local n=0; for _,x in ipairs(H.played) do if x:find('143_damier',1,true) then n=n+1 end end
  check(n==1,'chequered once: '..n)
 end
--- Plan d'arrêt publié pour AdvancedIA pendant une course (clé SpotterEnginer.pitplan, contrat v1).
+-- Plan d'arrêt publié pour AdvancedIA pendant une course (clé SpotterEngineer.pitplan, contrat v1).
 function T.pitplan_published()
  race(true,200,false)
- local s=H.store['SpotterEnginer.pitplan']
+ local s=H.store['SpotterEngineer.pitplan']
+ check(H.store['SpotterEnginer.pitplan']==s,'same plan also under the old name of the app')
  check(type(s)=='string' and s:match('^v=1;lap=%d+;compound=%-;state=%a+;window=%d+%-%d+;boxcalls=[01];stamp=%d+$') and #s<=160,'pitplan written: '..tostring(s))
- -- Duel de stratégie (1.3.4, clé SpotterEnginer.strategy, contrat v1) : écrit par l'app pendant la course.
- local u=H.store['SpotterEnginer.strategy']
+ -- Duel de stratégie (1.3.4, clé SpotterEngineer.strategy, contrat v1) : écrit par l'app pendant la course.
+ local u=H.store['SpotterEngineer.strategy']
  check(type(u)=='string' and u:match('^v=1;mode=%a+;rival=%-?%d+;gain=%-?%d+%.%d;lap=%d+;stamp=%d+$') and #u<=160,'strategy written: '..tostring(u))
 end
 function T.pit_loss_learnt_from_ai_stop()
@@ -205,7 +207,7 @@ function T.language_switch_and_settings_saved()
  local saved=H.storage['spe:'] and H.storage['spe:'].settings or ''
  check(saved:find('EN',1,true),'settings saved: '..saved:sub(1,80))
 end
--- Code réellement installé dans AdvancedIA (src/applier.lua) : se connecte-t-il à SpotterEnginer ?
+-- Code réellement installé dans AdvancedIA (src/applier.lua) : se connecte-t-il à SpotterEngineer ?
 function T.installed_aai_bridge_connects()
  check(INSTALLED_BRIDGE~='','no bridgeOpen in the installed AdvancedIA')
  bridgeSource=INSTALLED_BRIDGE
@@ -231,9 +233,9 @@ function T.overlay_settings_apply()
  race(true,40,false)
  local app=SPE_TEST.app
  H.windows=0; H.windowIds={}; script.SPE__HUD()
- check(H.windowIds['SpotterEnginer_d1_spotter'] and H.windowIds['SpotterEnginer_d1_engineer'] and H.windowIds['SpotterEnginer_d1_strategy'],'three overlays shown')
+ check(H.windowIds['SpotterEngineer_d1_spotter'] and H.windowIds['SpotterEngineer_d1_engineer'] and H.windowIds['SpotterEngineer_d1_strategy'],'three overlays shown')
  app.set('engineerShow',false); app.set('overlaysOn',true); H.windowIds={}; script.SPE__HUD()
- check(not H.windowIds['SpotterEnginer_d1_engineer'],'engineer overlay hidden by its setting')
+ check(not H.windowIds['SpotterEngineer_d1_engineer'],'engineer overlay hidden by its setting')
  app.set('overlaysOn',false); H.windowIds={}; script.SPE__HUD()
  check(next(H.windowIds)==nil,'all overlays hidden (Ctrl+Alt+J)')
  app.set('overlaysOn',true); app.backgrounds('transparent')
@@ -311,7 +313,7 @@ function T.overlays_are_per_desktop()
  -- Bureau 1 (configuration existante gardée) : spotter déplacé.
  app.set('spotterX',100); app.set('spotterY',200)
  H.windowIds={}; script.SPE__HUD()
- check(H.windowIds['SpotterEnginer_d1_spotter'] and H.windowIds['SpotterEnginer_d1_strategy'],'desktop 1 shows its overlays')
+ check(H.windowIds['SpotterEngineer_d1_spotter'] and H.windowIds['SpotterEngineer_d1_strategy'],'desktop 1 shows its overlays')
  -- Bureau 2 jamais réglé : vide.
  H.desktop=1; H.windowIds={}; script.SPE__HUD()
  check(app.desktop==2 and next(H.windowIds)==nil,'desktop 2 starts empty')
@@ -319,7 +321,7 @@ function T.overlays_are_per_desktop()
  -- On y affiche seulement la stratégie, ailleurs.
  app.set('strategyShow',true); app.set('strategyX',50)
  H.windowIds={}; script.SPE__HUD()
- check(H.windowIds['SpotterEnginer_d2_strategy'] and not H.windowIds['SpotterEnginer_d2_spotter'],'desktop 2: strategy only')
+ check(H.windowIds['SpotterEngineer_d2_strategy'] and not H.windowIds['SpotterEngineer_d2_spotter'],'desktop 2: strategy only')
  -- Retour au bureau 1 : ses réglages reviennent intacts.
  H.desktop=0; H.windowIds={}; script.SPE__HUD()
  check(app.cfg.spotterX==100 and app.cfg.spotterY==200 and app.cfg.strategyX==-1 and app.cfg.engineerShow==true,'desktop 1 restored')
@@ -372,8 +374,8 @@ local function fakeWindows()
  function o:size() return w.sz end
  function o:move(p) w.pos=p; return self end
  function o:resize(s) w.sz=s; return self end
- ac.getAppWindows=function() return {{name='IMGUI_LUA_SpotterEnginer_game',title='SpotterEnginer - Config'}} end
- ac.accessAppWindow=function(name) if name=='IMGUI_LUA_SpotterEnginer_game' then return o end return nil end
+ ac.getAppWindows=function() return {{name='IMGUI_LUA_SpotterEngineer_game',title='SpotterEngineer - Config'}} end
+ ac.accessAppWindow=function(name) if name=='IMGUI_LUA_SpotterEngineer_game' then return o end return nil end
  return w
 end
 local function noWindows() ac.getAppWindows=nil; ac.accessAppWindow=nil; require('src/port').forgetGameWindow() end
@@ -634,7 +636,7 @@ function T.desktop_never_readable_uses_desktop_one()
  H.startDesktop=nil
  local app=SPE_TEST.app
  H.windowIds={}; script.SPE__HUD()
- check(app.desktop==1 and app.desktopAvailable==true and H.windowIds['SpotterEnginer_d1_spotter'],'never readable: desktop 1, overlays drawn')
+ check(app.desktop==1 and app.desktopAvailable==true and H.windowIds['SpotterEngineer_d1_spotter'],'never readable: desktop 1, overlays drawn')
  H.desktop=0
 end
 -- Version « Beta 2.0.0 » jamais affichée « vBeta 2.0.0 » ; fonds rétablis sans rallumer la barre d'accent.
@@ -646,19 +648,48 @@ function T.header_version_and_backgrounds()
  app.backgrounds('transparent'); app.backgrounds('solid')
  check(app.cfg.spotterAccent==false and app.cfg.engineerAccent==false,'restoring backgrounds keeps the accent bar off')
 end
+-- Renommage (SpotterEnginer -> SpotterEngineer, 15/11/2026) : réglages de l'ancien dossier repris au premier lancement.
+function T.settings_imported_from_old_name()
+ -- Texte enregistré par CSP (JSON réel en jeu ; sérialiseur de l'hôte de test ici).
+ local old=JSON.stringify({schema=6,language='EN',volume=1.2})
+ H.stateDir='C:/state'
+ H.preFiles={['C:/state/lua/app/SpotterEnginer.ini']='[STRING]'..string.char(10).."123='"..old.."'"..string.char(10)}
+ race(true,5,false)
+ H.stateDir=nil; H.preFiles=nil
+ check(SPE_TEST.app.cfg.language=='EN' and math.abs(SPE_TEST.app.cfg.volume-1.2)<1e-6,'old settings taken over')
+end
+-- Ancien dossier SpotterEnginer encore installé : avertissement sur l'accueil.
+function T.old_folder_warning()
+ H.preFiles={[H.appsDir..'/SpotterEnginer/manifest.ini']='NAME=SpotterEnginer'}
+ race(true,5,false)
+ H.preFiles=nil
+ local app=SPE_TEST.app
+ H.space=vec2(860,640); script.SPE__MAIN(); app.view.tab='home'; H.texts={}; script.SPE__MAIN()
+ check(app.oldFolder==true and texted('apps/lua/SpotterEnginer'),'old folder: warning on the home page')
+end
+-- « Masquer en rediffusion » : coupé, les overlays restent affichés en rediffusion (dernier état d'AdvancedIA).
+function T.hide_in_replays_setting_works()
+ race(true,20,false)
+ local app=SPE_TEST.app
+ app.link.state='suspended'; app.link.reason='replay'; app.F.replay=true
+ app.cfg.hideReplay=false; H.windowIds={}; script.SPE__HUD()
+ check(H.windowIds['SpotterEngineer_d1_spotter'],'replay, setting off: overlays shown')
+ app.cfg.hideReplay=true; H.windowIds={}; script.SPE__HUD()
+ check(not H.windowIds['SpotterEngineer_d1_spotter'],'replay, setting on: hidden')
+end
 -- Bureau illisible (comme SuperHUD) : overlays suspendus, leurs réglages refusés (ils iraient dans un autre bureau).
 function T.unreadable_desktop_suspends_overlays()
  race(true,10,false)
  local app=SPE_TEST.app
  H.windowIds={}; script.SPE__HUD()
- check(H.windowIds['SpotterEnginer_d1_spotter'],'desktop 1 drawn')
+ check(H.windowIds['SpotterEngineer_d1_spotter'],'desktop 1 drawn')
  H.desktop=-5; H.windowIds={}; script.SPE__HUD()
  check(app.desktopAvailable==false and next(H.windowIds)==nil,'unreadable: nothing drawn')
  local x=app.cfg.spotterX; app.set('spotterX',x+50)
  check(app.cfg.spotterX==x,'unreadable: overlay setting refused')
  app.set('language','EN'); check(app.cfg.language=='EN','unreadable: other settings still change')
  H.desktop=0; H.windowIds={}; script.SPE__HUD()
- check(H.windowIds['SpotterEnginer_d1_spotter'],'readable again: drawn')
+ check(H.windowIds['SpotterEngineer_d1_spotter'],'readable again: drawn')
 end
 -- Une section coupée fait taire ses annonces sans changer les choix qu'elle contient ; elle les retrouve rallumée,
 -- et après un relancement.
@@ -757,8 +788,8 @@ end
 function T.journal_written()
  race(true,450,false)
  check(#H.logs==0,'errors: '..table.concat(H.logs,' | '))
- local text=H.files[H.appsDir..'/SpotterEnginer.log'] or ''
- for _,want in ipairs({'=== SpotterEnginer','réglages : langue FR','liaison : connected','spotter et ingénieur : actifs',
+ local text=H.files[H.appsDir..'/SpotterEngineer.log'] or ''
+ for _,want in ipairs({'=== SpotterEngineer','réglages : langue FR','liaison : connected','spotter et ingénieur : actifs',
   'tour 1 fini : ','radio spotter p','(dite)','état : P','voiture(s) à moins de 30 m','plan prêt : '}) do
   check(text:find(want,1,true),'journal line missing: '..want..'\n'..text:sub(1,600))
  end
@@ -766,7 +797,7 @@ function T.journal_written()
  check(text:match('\n%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d +[%d%.]+ T%d'),'timestamped lines')
  -- Version de l'app : celle du manifeste (une seule source), dans le journal et l'en-tête.
  local version=APP_MANIFEST:match('\nVERSION%s*=%s*([^\r\n]+)')
- check(version and SPE_TEST.app.version==version and text:find('=== SpotterEnginer '..version,1,true),'version from the manifest: '..tostring(SPE_TEST.app.version))
+ check(version and SPE_TEST.app.version==version and text:find('=== SpotterEngineer '..version,1,true),'version from the manifest: '..tostring(SPE_TEST.app.version))
 end
 function T.no_message_spam_over_ten_laps()
  H.raceDt=0.1
@@ -811,7 +842,7 @@ function T.overlay_error_is_isolated()
  local before=app.errors.count
  H.windowIds={}; script.SPE__HUD()
  O.draw.spotter=draw
- check(H.windowIds['SpotterEnginer_d1_engineer'] and H.windowIds['SpotterEnginer_d1_strategy'],'other overlays still drawn')
+ check(H.windowIds['SpotterEngineer_d1_engineer'] and H.windowIds['SpotterEngineer_d1_strategy'],'other overlays still drawn')
  check(app.errors.count==before+1,'error counted once: '..(app.errors.count-before))
  check(H.fonts==0 and H.clips==0,'fonts and clips balanced after the error')
 end
@@ -878,7 +909,7 @@ function T.silent_without_bridge()
  check(H.windows==0,'locked overlays hidden without AdvancedIA: '..tostring(H.windows))
  SPE_TEST.app.set('spotterLocked',false); H.texts={}
  script.SPE__HUD()
- check(H.windowIds['SpotterEnginer_d1_spotter'] and not H.windowIds['SpotterEnginer_d1_engineer'],'unlocked overlay shown alone')
+ check(H.windowIds['SpotterEngineer_d1_spotter'] and not H.windowIds['SpotterEngineer_d1_engineer'],'unlocked overlay shown alone')
  check(texted('DÉVERROUILLÉ'),'unlock hint drawn')
  check(H.fonts==0,'fonts balanced')
 end
@@ -1002,7 +1033,7 @@ function T.superhud_radar_and_blocks()
  local ok,err=pcall(function()
   race(true,50,true)
   check(played('36_voiture_gauche'),'without SuperHUD: car left said')
-  local y0=pos['SpotterEnginer_d1_spotter'] and pos['SpotterEnginer_d1_spotter'].y
+  local y0=pos['SpotterEngineer_d1_spotter'] and pos['SpotterEngineer_d1_spotter'].y
   check(y0 and y0<550,'without SuperHUD: automatic position: '..tostring(y0))
   H.extraFiles={[H.appsDir..'/SuperHUD/manifest.ini']=table.concat({'[ABOUT]','NAME = SuperHUD','VERSION = 1.9.6-fr',''},string.char(10))}
   H.onStep=function(now) H.store['SuperHUD.state']=string.format('v=1;desk=1;sw=1920;sh=1080;radar=1;stamp=%d;rects=0,250,420,300',math.floor(now)) end
@@ -1010,9 +1041,9 @@ function T.superhud_radar_and_blocks()
   race(true,50,true)
   check(SPE_TEST.app.has.superhud==true,'SuperHUD detected')
   check(not played('36_voiture_gauche'),'SuperHUD radar on: side by side left to it')
-  local sp=pos['SpotterEnginer_d1_spotter']
+  local sp=pos['SpotterEngineer_d1_spotter']
   check(sp and (sp.y+sp.h<=250 or sp.y>=550),'spotter overlay clear of the SuperHUD block (250 to 550): '..tostring(sp and sp.y))
-  local en=pos['SpotterEnginer_d1_engineer']
+  local en=pos['SpotterEngineer_d1_engineer']
   check(en and sp and en.y>=sp.y+sp.h and (en.y+en.h<=250 or en.y>=550),'engineer overlay below the spotter, clear of the block: '..tostring(en and en.y))
   local app=SPE_TEST.app
   for _,pg in ipairs({{'spotter','superhudRadar'},{'overlays','superhudAvoid'}}) do
